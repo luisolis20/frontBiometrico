@@ -63,10 +63,10 @@ module.exports = defineConfig({
       }),
       // ✅ Define variables globales seguras para tus URLs
       new webpack.DefinePlugin({
-        __API_CVN__: JSON.stringify(
+        __API_BOLSA__: JSON.stringify(
           process.env.NODE_ENV === 'production'
-            ? 'http://192.168.1.19/cvubackendv2/api'
-            : 'http://192.168.1.19/cvubackendv2/api'
+            ? 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
+            : 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
         ),
       }),
     ],
