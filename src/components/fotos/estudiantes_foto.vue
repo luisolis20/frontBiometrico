@@ -23,8 +23,8 @@
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
           <tr class="border-t border-gray-100 dark:border-gray-800" v-if="this.cargando">
-            <td colspan="9">
-              <h3>Cargando....</h3>
+            <td class="px-5 py-4 sm:px-6" colspan="9">
+              <h3 class="text-center">Cargando....</h3>
             </td>
           </tr>
           <tr v-else v-for="post,  in this.filteredpostulaciones" :key="post.CIInfPer"
@@ -57,15 +57,15 @@
     <br><br>
     <div class="d-flex justify-content-center mb-4">
       <button @click="previousPage" :disabled="currentPage === 1 || buscando" class="btn btn-primary text-white">
-        Anterior
+        <i class='fas fa-angle-left'></i>
       </button>&nbsp;
       <span class="text-dark">Página {{ currentPage }} de {{ lastPage }}</span>&nbsp;
       <button @click="nextPage" :disabled="currentPage === lastPage || buscando" class="btn btn-primary text-white">
-        Siguiente
+        <i class='fas fa-angle-right'></i>
       </button>
     </div>
     &nbsp;&nbsp;&nbsp;&nbsp;
-    <div class="d-flex justify-content-center mb-4">
+    <div class="d-flex justify-content-center mb-4" v-if="!this.cargando">
       <button class="btn btn-primary text-white" @click="actualizar">Actualizar Datos</button>
       &nbsp;&nbsp;&nbsp;
       <button class="btn btn-primary text-white" @click="descargarDatosMasiva">Descargar en formato ZIP</button>
@@ -83,7 +83,7 @@ export default {
   data() {
     return {
       idus: 0,
-      baseUrl: "/b_e/vin", // Ajustado para usar la base
+      baseUrl: "/biometrico", // Ajustado para usar la base
       postulacionespr: [],
       filteredpostulaciones: [],
       searchQuery: '',
@@ -105,7 +105,7 @@ export default {
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
     getPhotoUrl(ci) {
       const baseURL2 = API.defaults.baseURL
-      return `${baseURL2}/b_e/vin/fotografia/${ci}`;
+      return `${baseURL2}/biometrico/fotografia/${ci}`;
     },
 
     // 🆕 Maneja el error de carga de imagen (ej: si el CI no tiene foto a pesar del filtro)

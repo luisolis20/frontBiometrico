@@ -63,10 +63,10 @@ module.exports = defineConfig({
       }),
       // ✅ Define variables globales seguras para tus URLs
       new webpack.DefinePlugin({
-        __API_BOLSA__: JSON.stringify(
+        __API_BIOMETRICO__: JSON.stringify(
           process.env.NODE_ENV === 'production'
-            ? 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
-            : 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
+            ? 'http://biometricobackend.test/api'
+            : 'http://biometricobackend.test/api'
         ),
       }),
     ],
@@ -80,7 +80,7 @@ module.exports = defineConfig({
   devServer: {
     proxy: {
       '/api': {
-        target: 'http://cvubackendv2.test',
+        target: 'http://biometricobackend.test',
         changeOrigin: true,
         pathRewrite: { '^/api': '' },
       },

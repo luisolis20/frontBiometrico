@@ -178,7 +178,7 @@ const menuGroups = [
       {
         icon: GridIcon,
         name: "Principal",
-        path: "/",
+        path: "/home",
       },
       {
         icon: UserCircleIcon,

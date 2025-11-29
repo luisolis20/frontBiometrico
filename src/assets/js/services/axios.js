@@ -1,14 +1,14 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: `${__API_BOLSA__}`,
+  baseURL: `${__API_BIOMETRICO__}`,
   timeout: 90000,
 });
 
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    const tokenType = localStorage.getItem("token_type");
+    const token = localStorage.getItem("token_bio");
+    const tokenType = localStorage.getItem("token_type_bio");
 
     if (token && tokenType) {
       config.headers.Authorization = `${tokenType} ${token}`;
@@ -35,8 +35,8 @@ API.interceptors.response.use(
       // Puedes manejar ciertos códigos de error
       if (error.response.status === 401) {
         console.warn("🔒 Sesión expirada. Cerrando sesión...");
-        localStorage.removeItem("token");
-        localStorage.removeItem("token_type");
+        localStorage.removeItem("token_bio");
+        localStorage.removeItem("token_type_bio");
         window.location.href = "/biometrico"; // Redirige al login si la sesión caduca
       }
     } else if (error.request) {
