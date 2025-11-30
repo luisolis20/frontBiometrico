@@ -1,33 +1,38 @@
 <template>
-  <form>
-    <div class="relative">
-      <button class="absolute -translate-y-1/2 left-4 top-1/2">
-        <svg class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none"
-          xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd"
-            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-            fill="" />
+  <div class="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+    <!-- Search Form -->
+    <form class="flex-grow">
+      <div class="relative">
+        <button class="absolute -translate-y-1/2 left-4 top-1/2">
+          <svg class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+              fill="" />
+          </svg>
+        </button>
+        <!-- @input llama al debouncedFilter, que inicia la nueva consulta al backend -->
+        <input type="text" placeholder="Ingresa la cédula o nombre a buscar..." v-model="searchQuery"
+          @input="debouncedFilter" @keypress="onlyNumbers"
+          class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]" />
+      </div>
+    </form>
+
+    <!-- Combobox for Carrera Filter -->
+    <div class="relative w-full md:w-auto md:min-w-[280px]">
+      <!-- @change llama al debouncedFilter, que inicia la nueva consulta al backend -->
+      <select v-model="selectedCarrera" @change="debouncedFilter"
+        class="appearance-none h-11 w-full rounded-lg border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
+        <option value="Todos">Todas las Carreras</option>
+        <option v-for="carrera in carrerasList" :key="carrera" :value="carrera">{{ carrera }}</option>
+      </select>
+      <!-- Custom Arrow Down Icon -->
+      <div
+        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700 dark:text-gray-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
-      </button>
-      <input type="text" placeholder="Ingresa la cédula a buscar..." v-model="searchQuery" @input="debouncedFilter"
-        @keypress="onlyNumbers"
-        class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]" />
-
-
-    </div>
-  </form>
-  <!-- Combobox for Carrera Filter -->
-  <div class="relative w-full md:w-auto md:min-w-[280px]">
-    <select v-model="selectedCarrera" @change="debouncedFilter"
-      class="appearance-none h-11 w-full rounded-lg border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
-      <option value="Todos">Todas las Carreras</option>
-      <option v-for="carrera in carrerasList" :key="carrera" :value="carrera">{{ carrera }}</option>
-    </select>
-    <!-- Custom Arrow Down Icon -->
-    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700 dark:text-gray-300">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-      </svg>
+      </div>
     </div>
   </div>
   <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
@@ -167,8 +172,9 @@ export default {
   async mounted() {
     const ruta = useRoute();
     // const usuario = await getMe(); // Solo si es necesario para autenticación
-    this.idus = ruta.params.id; // Asumiendo que `id` es relevante
+    //this.idus = ruta.params.id; // Asumiendo que `id` es relevante
     this.getAdministrativosD(1, this.searchQuery, this.selectedCarrera);
+    this.loadCarrerasList();
   },
   methods: {
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
@@ -180,28 +186,30 @@ export default {
       //const baseURL2 = API.defaults.baseURL
       return `${__API_BOLSA__}/b_e/vin/fotografia/${ci}`;
     },
-    async isDifente(post) {
-      const url1 = this.getPhotoUrl(post.CIInfPer);
-      const url2 = this.getPhotoUrl2(post.CIInfPer);
+    async loadCarrerasList() {
+      this.cargando = true;
+      try {
+        const response = await API.get(`${this.baseUrl}/carrerasList`);
 
-      // Descargar ambas imágenes como binario
-      const [img1, img2] = await Promise.all([
-        fetch(url1).then(r => r.arrayBuffer()),
-        fetch(url2).then(r => r.arrayBuffer())
-      ]);
+        this.carrerasList = (response.data?.data || [])
+          .map(c => c.NombCarr) // Solo el nombre
+          .filter(c => c)        // Evita nulls
+          .sort();               // Ordenar A-Z
 
-      // Si el tamaño es distinto → imágenes distintas
-      if (img1.byteLength !== img2.byteLength) return true;
-
-      // Comparar byte a byte
-      const a = new Uint8Array(img1);
-      const b = new Uint8Array(img2);
-
-      for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) return true;
+      } catch (error) {
+        console.error("❌ Error al obtener carreras:", error);
+        this.carrerasList = [];
       }
+    },
+    async isDifente(post) {
+      try {
+        const resp = await API.get(`/biometrico/comparar-foto/${post.CIInfPer}`);
+        return resp.data.different === true;
+      } catch (error) {
+        console.warn("Error comparando fotos:", error);
+        return true; // ante error considerar diferente
 
-      return false;
+      }
     },
 
     // 🆕 Maneja el error de carga de imagen (ej: si el CI no tiene foto a pesar del filtro)
@@ -229,22 +237,17 @@ export default {
         this.currentPage = pagination.current_page || 1;
         this.lastPage = pagination.last_page || 1;
 
-        // 1. Extraer carreras únicas (solo de la página actual para el combobox)
-        // Idealmente, esto se cargaría una vez al inicio desde un endpoint dedicado.
-        if (page === 1 && !searchQuery && carreraName === 'Todos') {
-          const uniqueCarreras = [
-            ...new Set(data.map(p => p.NombCarr).filter(c => c)),
-          ].sort();
-          this.carrerasList = uniqueCarreras;
-        }
+        this.filteredpostulaciones = data;
 
         // 2. Procesar la diferencia de fotos
-        for (const post of data) {
-          post.different = await this.isDifente(post);
-        }
+        for (const post of this.filteredpostulaciones) { 
+          this.$nextTick(async () => { 
+            post.different = await this.isDifente(post); 
+          });
+         }
 
         // 3. Actualizar la tabla con los datos filtrados y paginados
-        this.filteredpostulaciones = data;
+
 
       } catch (error) {
         console.warn("⚠️ Error al obtener datos:", error?.response?.data || error);
