@@ -6,7 +6,7 @@ module.exports = defineConfig({
   transpileDependencies: true,
 
   // ✅ Usa ruta raíz en producción (evita revelar nombre de carpeta)
-  publicPath: process.env.NODE_ENV === 'production' ? '/cvn/' : '/',
+  publicPath: process.env.NODE_ENV === 'production' ? '/biometrico/' : '/',
 
   // ✅ Carpeta limpia para build
   outputDir: 'dist',
@@ -30,7 +30,7 @@ module.exports = defineConfig({
       });
 
     // Opcional: Si usas Vue 3 con <script setup lang="ts">,
-    // a veces es necesario asegurar que vue-loader sepa cómo manejarlo.
+  // a veces es necesario asegurar que vue-loader sepa cómo manejarlo.
     config.module
       .rule('vue')
       .use('vue-loader')
@@ -67,6 +67,11 @@ module.exports = defineConfig({
           process.env.NODE_ENV === 'production'
             ? 'http://biometricobackend.test/api'
             : 'http://biometricobackend.test/api'
+        ),
+        __API_BOLSA__: JSON.stringify(
+          process.env.NODE_ENV === 'production'
+            ? 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
+            : 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
         ),
       }),
     ],

@@ -1,23 +1,62 @@
 <template>
+  <form>
+    <div class="relative">
+      <button class="absolute -translate-y-1/2 left-4 top-1/2">
+        <svg class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd"
+            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+            fill="" />
+        </svg>
+      </button>
+      <input type="text" placeholder="Ingresa la cédula a buscar..." v-model="searchQuery" @input="debouncedFilter"
+        @keypress="onlyNumbers"
+        class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]" />
+
+
+    </div>
+  </form>
+  <!-- Combobox for Carrera Filter -->
+  <div class="relative w-full md:w-auto md:min-w-[280px]">
+    <select v-model="selectedCarrera" @change="debouncedFilter"
+      class="appearance-none h-11 w-full rounded-lg border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
+      <option value="Todos">Todas las Carreras</option>
+      <option v-for="carrera in carrerasList" :key="carrera" :value="carrera">{{ carrera }}</option>
+    </select>
+    <!-- Custom Arrow Down Icon -->
+    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700 dark:text-gray-300">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </div>
+  </div>
   <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
     <div class="max-w-full overflow-x-auto custom-scrollbar">
       <table class="min-w-full">
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-700">
             <th class="px-5 py-3 text-left w-3/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Estudiante</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                Estudiante
+              </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Carrera</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                Carrera
+              </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Correo</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                Foto SIAD
+              </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Acciones</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                Foto HC
+              </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Carrera</p>
+              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400"></p>
             </th>
           </tr>
         </thead>
@@ -27,7 +66,7 @@
               <h3 class="text-center">Cargando....</h3>
             </td>
           </tr>
-          <tr v-else v-for="post,  in this.filteredpostulaciones" :key="post.CIInfPer"
+          <tr v-else v-for="post in this.filteredpostulaciones" :key="post.CIInfPer"
             class="border-t border-gray-100 dark:border-gray-800">
             <td class="px-5 py-4 sm:px-6">
               <div class="flex items-center gap-3">
@@ -39,45 +78,72 @@
                     {{ post.CIInfPer }}
                   </span>
                   <span class="block text-gray-500 text-theme-xs dark:text-gray-400">
-                    {{ post.NombInfPer + ' ' + post.ApellInfPer + ' ' + post.ApellMatInfPer }}
+                    {{
+                      post.NombInfPer + " " + post.ApellInfPer + " " + post.ApellMatInfPer
+                    }}
                   </span>
                 </div>
               </div>
             </td>
             <td class="px-5 py-4 sm:px-6">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ post.NombCarr }}</p>
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                {{ post.NombCarr }}
+              </p>
             </td>
-
-            
+            <td class="px-5 py-4 sm:px-6">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 overflow-hidden rounded-full">
+                  <img :src="getPhotoUrl(post.CIInfPer)" @error="handleImageError" />
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-4 sm:px-6">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 overflow-hidden rounded-full">
+                  <img :src="getPhotoUrl2(post.CIInfPer)" @error="handleImageError" />
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-4 sm:px-6">
+              <button v-if="post.different"
+                class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
+                Actualizar foto
+              </button>
+              <span v-else class="text-gray-400 text-xs">Fotos similares</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
-    
-    <br><br>
+
+    <br /><br />
     <div class="d-flex justify-content-center mb-4">
       <button @click="previousPage" :disabled="currentPage === 1 || buscando" class="btn btn-primary text-white">
-        <i class='fas fa-angle-left'></i>
-      </button>&nbsp;
-      <span class="text-dark">Página {{ currentPage }} de {{ lastPage }}</span>&nbsp;
+        <i class="fas fa-angle-left"></i></button>&nbsp; <span class="text-dark">Página {{ currentPage }} de {{ lastPage
+        }}</span>&nbsp;
       <button @click="nextPage" :disabled="currentPage === lastPage || buscando" class="btn btn-primary text-white">
-        <i class='fas fa-angle-right'></i>
+        <i class="fas fa-angle-right"></i>
       </button>
     </div>
     &nbsp;&nbsp;&nbsp;&nbsp;
     <div class="d-flex justify-content-center mb-4" v-if="!this.cargando">
-      <button class="btn btn-primary text-white" @click="actualizar">Actualizar Datos</button>
+      <button class="btn btn-primary text-white" @click="actualizar">
+        Actualizar Datos
+      </button>
       &nbsp;&nbsp;&nbsp;
-      <button class="btn btn-primary text-white" @click="descargarDatosMasiva">Descargar en formato ZIP</button>
+      <button class="btn btn-primary text-white" @click="descargarDatosMasiva">
+        Descargar en formato ZIP
+      </button>
     </div>
   </div>
 </template>
 
 <script>
-import API from '@/assets/js/services/axios';
-import { useRoute } from 'vue-router';
+import API from "@/assets/js/services/axios";
+import { useRoute } from "vue-router";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import debounce from 'lodash.debounce';
 
 export default {
   data() {
@@ -86,75 +152,117 @@ export default {
       baseUrl: "/biometrico", // Ajustado para usar la base
       postulacionespr: [],
       filteredpostulaciones: [],
-      searchQuery: '',
+      searchQuery: "",
       cargando: false,
       currentPage: 1,
       lastPage: 1,
       buscando: false, // Mantenido, pero no se usa en la lógica de paginación actual
       grafico: null, // Mantenido, pero no se usa aquí
       photoCache: {}, // 🆕 Cache para almacenar URLs de fotos si es necesario
-    }
+      debouncedFilter: debounce(this.filterAndFetch, 500),
+      selectedCarrera: 'Todos', // Valor inicial para seleccionar todas las carreras
+      carrerasList: [], // Lista de carreras únicas para el combobox
+    };
   },
   async mounted() {
     const ruta = useRoute();
     // const usuario = await getMe(); // Solo si es necesario para autenticación
     this.idus = ruta.params.id; // Asumiendo que `id` es relevante
-    this.getAdministrativosD();
+    this.getAdministrativosD(1, this.searchQuery, this.selectedCarrera);
   },
   methods: {
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
     getPhotoUrl(ci) {
-      const baseURL2 = API.defaults.baseURL
+      const baseURL2 = API.defaults.baseURL;
       return `${baseURL2}/biometrico/fotografia/${ci}`;
+    },
+    getPhotoUrl2(ci) {
+      //const baseURL2 = API.defaults.baseURL
+      return `${__API_BOLSA__}/b_e/vin/fotografia/${ci}`;
+    },
+    async isDifente(post) {
+      const url1 = this.getPhotoUrl(post.CIInfPer);
+      const url2 = this.getPhotoUrl2(post.CIInfPer);
+
+      // Descargar ambas imágenes como binario
+      const [img1, img2] = await Promise.all([
+        fetch(url1).then(r => r.arrayBuffer()),
+        fetch(url2).then(r => r.arrayBuffer())
+      ]);
+
+      // Si el tamaño es distinto → imágenes distintas
+      if (img1.byteLength !== img2.byteLength) return true;
+
+      // Comparar byte a byte
+      const a = new Uint8Array(img1);
+      const b = new Uint8Array(img2);
+
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return true;
+      }
+
+      return false;
     },
 
     // 🆕 Maneja el error de carga de imagen (ej: si el CI no tiene foto a pesar del filtro)
     handleImageError(event) {
       // Reemplaza la imagen con el ícono de usuario por defecto
-      event.target.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/480px-User_icon_2.svg.png";
-      event.target.style.width = '100px';
-      event.target.style.height = '100px';
+      event.target.src =
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/480px-User_icon_2.svg.png";
     },
 
-    async getAdministrativosD(page = 1) {
+    async getAdministrativosD(page = 1, searchQuery = "", carreraName = "Todos") {
       this.cargando = true;
       try {
-        // Petición para obtener METADATOS (sin datos binarios de foto)
-        const response = await API.get(`${this.baseUrl}/estudiantesfoto?page=${page}`); // No es necesario el withPhotos=true/false
-        // ya que el backend lo filtra y no envía la columna `fotografia`
+        const params = {
+          page: page,
+          search_query: searchQuery, // Parámetro para búsqueda de CI/Nombres
+          carrera_name: carreraName === 'Todos' ? '' : carreraName, // Parámetro para carrera
+        };
 
-        this.postulacionespr = response.data?.data || [];
+        // Petición al backend CON filtros incluidos
+        const response = await API.get(`${this.baseUrl}/estudiantesfoto`, { params });
+
+        const data = response.data?.data || [];
         const pagination = response.data?.pagination || {};
+
         this.currentPage = pagination.current_page || 1;
         this.lastPage = pagination.last_page || 1;
 
-        // Limpiar el filtro al cargar una nueva página
-        this.searchQuery = '';
-        this.filteredpostulaciones = this.postulacionespr;
+        // 1. Extraer carreras únicas (solo de la página actual para el combobox)
+        // Idealmente, esto se cargaría una vez al inicio desde un endpoint dedicado.
+        if (page === 1 && !searchQuery && carreraName === 'Todos') {
+          const uniqueCarreras = [
+            ...new Set(data.map(p => p.NombCarr).filter(c => c)),
+          ].sort();
+          this.carrerasList = uniqueCarreras;
+        }
+
+        // 2. Procesar la diferencia de fotos
+        for (const post of data) {
+          post.different = await this.isDifente(post);
+        }
+
+        // 3. Actualizar la tabla con los datos filtrados y paginados
+        this.filteredpostulaciones = data;
+
       } catch (error) {
         console.warn("⚠️ Error al obtener datos:", error?.response?.data || error);
         this.filteredpostulaciones = [];
+        this.currentPage = 1;
+        this.lastPage = 1;
       } finally {
         this.cargando = false;
       }
     },
 
-    // ⛔ Se elimina `updateFilteredData` y `filtrarOfertas` porque la paginación es del backend
 
-    async filterResults() {
-      // 📝 La búsqueda local se mantiene, solo se busca entre los datos de la página actual.
-      const query = this.searchQuery.trim().toLowerCase();
-      if (!query) {
-        this.filteredpostulaciones = this.postulacionespr;
-        return;
-      }
 
-      this.filteredpostulaciones = this.postulacionespr.filter(inves =>
-        inves.CIInfPer.toLowerCase().includes(query) ||
-        (inves.NombInfPer && inves.NombInfPer.toLowerCase().includes(query)) ||
-        (inves.ApellInfPer && inves.ApellInfPer.toLowerCase().includes(query)) ||
-        (inves.ApellMatInfPer && inves.ApellMatInfPer.toLowerCase().includes(query))
-      );
+    filterAndFetch() {
+      // 1. Siempre se va a la página 1 cuando se aplican nuevos filtros
+      this.currentPage = 1;
+      // 2. Llama a la función principal con los filtros actuales
+      this.getAdministrativosD(this.currentPage, this.searchQuery, this.selectedCarrera);
     },
 
     onlyNumbers(event) {
@@ -168,19 +276,19 @@ export default {
 
     nextPage() {
       if (this.currentPage < this.lastPage && !this.cargando) {
-        this.getAdministrativosD(this.currentPage + 1);
+        this.getAdministrativosD(this.currentPage + 1, this.searchQuery, this.selectedCarrera);
       }
     },
 
     previousPage() {
       if (this.currentPage > 1 && !this.cargando) {
-        this.getAdministrativosD(this.currentPage - 1);
+        this.getAdministrativosD(this.currentPage - 1, this.searchQuery, this.selectedCarrera);
       }
     },
 
     actualizar() {
       // Simplemente recarga la página actual de datos
-      this.getAdministrativosD(this.currentPage);
+      this.getAdministrativosD(this.currentPage, this.searchQuery, this.selectedCarrera);
     },
 
     // 🆕 Descarga de una sola foto
@@ -188,10 +296,10 @@ export default {
       try {
         // Llama al endpoint que devuelve la foto binaria
         const response = await API.get(`${this.baseUrl}/fotografia/${ci}`, {
-          responseType: 'blob' // Importante para manejar datos binarios
+          responseType: "blob", // Importante para manejar datos binarios
         });
 
-        const contentType = response.headers['content-type'] || 'image/jpeg';
+        const contentType = response.headers["content-type"] || "image/jpeg";
 
         // Determinar extensión y nombre de archivo
         let extension = "jpg";
@@ -206,10 +314,11 @@ export default {
         // Crea un Blob y usa file-saver para la descarga
         const blob = new Blob([response.data], { type: contentType });
         saveAs(blob, fileName);
-
       } catch (error) {
         console.error("Error al descargar la foto:", error?.response?.data || error);
-        alert("Ocurrió un error al descargar la foto. Es posible que el estudiante no tenga una fotografía.");
+        alert(
+          "Ocurrió un error al descargar la foto. Es posible que el estudiante no tenga una fotografía."
+        );
       }
     },
 
@@ -219,12 +328,14 @@ export default {
       try {
         const zip = new JSZip();
 
-        console.log("⏱️ Iniciando la obtención masiva de metadatos y fotos (una sola petición)... Esto puede tardar varios minutos.");
+        console.log(
+          "⏱️ Iniciando la obtención masiva de metadatos y fotos (una sola petición)... Esto puede tardar varios minutos."
+        );
 
         // 1. PETICIÓN ÚNICA AL NUEVO ENDPOINT
         const response = await API.get(`${this.baseUrl}/descargarfotosmasiva`, {
           // Aumentar el timeout del cliente para esta petición masiva
-          timeout: 600000 // 10 minutos (600,000 ms). Ajusta si es necesario.
+          timeout: 600000, // 10 minutos (600,000 ms). Ajusta si es necesario.
         });
 
         const registros = response.data?.data || [];
@@ -235,7 +346,9 @@ export default {
           return;
         }
 
-        console.log(`✅ Datos recibidos. Procesando ${totalRegistros} registros para generar el ZIP.`);
+        console.log(
+          `✅ Datos recibidos. Procesando ${totalRegistros} registros para generar el ZIP.`
+        );
 
         let contadorProcesado = 0;
 
@@ -255,7 +368,7 @@ export default {
               byteNumbers[i] = byteCharacters.charCodeAt(i);
             }
             const byteArray = new Uint8Array(byteNumbers);
-            // El mime type no es crucial para JSZip, pero se puede estimar 
+            // El mime type no es crucial para JSZip, pero se puede estimar
             // o usar 'image/jpeg' por defecto si el backend no lo provee.
 
             const carreraNombre = post.NombCarr
@@ -271,22 +384,30 @@ export default {
 
             // Generar nombre de archivo
             const nombre = (post.NombInfPer || "sinNombre").replace(/\s+/g, " ").trim();
-            const apellido = (post.ApellInfPer || "sinApellido1").replace(/\s+/g, " ").trim();
-            const apellido2 = (post.ApellMatInfPer || "sinApellido2").replace(/\s+/g, " ").trim();
+            const apellido = (post.ApellInfPer || "sinApellido1")
+              .replace(/\s+/g, " ")
+              .trim();
+            const apellido2 = (post.ApellMatInfPer || "sinApellido2")
+              .replace(/\s+/g, " ")
+              .trim();
             const cedula = post.CIInfPer || "sinCedula";
             const fileName = `${nombre}_${apellido}_${apellido2}_${cedula}.${extension}`;
 
             // Añadir la foto (ArrayBuffer) al ZIP
             folder.file(fileName, byteArray, { binary: true });
-
           } catch (processingError) {
-            console.warn(`No se pudo procesar la foto para CI: ${post.CIInfPer}. Omitting.`, processingError);
+            console.warn(
+              `No se pudo procesar la foto para CI: ${post.CIInfPer}. Omitting.`,
+              processingError
+            );
           }
 
           contadorProcesado++;
           // Mostrar progreso en consola
           const progreso = ((contadorProcesado / totalRegistros) * 100).toFixed(2);
-          console.log(`⏳ Procesado: ${contadorProcesado} / ${totalRegistros} (${progreso}%)`);
+          console.log(
+            `⏳ Procesado: ${contadorProcesado} / ${totalRegistros} (${progreso}%)`
+          );
         }
 
         console.log("💾 Generando archivo ZIP final... (Puede tardar)");
@@ -296,27 +417,32 @@ export default {
           type: "blob",
           compression: "DEFLATE",
           compressionOptions: {
-            level: 9
-          }
+            level: 9,
+          },
         });
         saveAs(content, "Estudiantes_con_Foto_por_Carrera.zip");
         alert("Descarga completada con éxito!");
-
       } catch (error) {
         console.error("❌ Error al generar ZIP:", error.response?.status, error);
         if (error.response?.status === 429) {
-          alert("El servidor reportó 'Too Many Requests' (429). Por favor, inténtelo de nuevo en un momento.");
-        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-          alert("La conexión expiró al intentar descargar todos los datos. El proceso es muy pesado. Inténtelo de nuevo o contacte a soporte.");
+          alert(
+            "El servidor reportó 'Too Many Requests' (429). Por favor, inténtelo de nuevo en un momento."
+          );
+        } else if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+          alert(
+            "La conexión expiró al intentar descargar todos los datos. El proceso es muy pesado. Inténtelo de nuevo o contacte a soporte."
+          );
         } else {
-          alert("Ocurrió un error general al descargar los datos. Revise la consola para más detalles.");
+          alert(
+            "Ocurrió un error general al descargar los datos. Revise la consola para más detalles."
+          );
         }
       } finally {
         this.cargando = false;
       }
-    }
+    },
   },
-}
+};
 </script>
 
 <style scoped>
