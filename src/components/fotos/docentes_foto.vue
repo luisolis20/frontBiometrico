@@ -18,7 +18,7 @@
       </div>
     </form>
     <div>
-      <label for="">Total de estudiantes matriculados y con foto: {{ totalEstudiantes }}</label>
+      <label for="">Total de docentes con foto: {{ totalEstudiantes }}</label>
     </div>
 
     <!-- Combobox for Carrera Filter -->
@@ -50,7 +50,7 @@
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Carrera
+                Tipo personal
               </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
@@ -94,8 +94,14 @@
               </div>
             </td>
             <td class="px-5 py-4 sm:px-6">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">
-                {{ post.NombCarr }}
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400" v-if="post.TipoInfPer === 'D'">
+                Docente
+              </p>
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400" v-else-if="post.TipoInfPer === 'A'">
+                Administrador
+              </p>
+              <p class="text-gray-500 text-theme-sm dark:text-gray-400" v-else-if="post.TipoInfPer === 'T'">
+                Trabajador
               </p>
             </td>
             <td class="px-5 py-4 sm:px-6">
@@ -135,8 +141,7 @@
     </div>
     &nbsp;&nbsp;&nbsp;&nbsp;
     <div class="d-flex justify-content-center mb-4" v-if="!this.cargando">
-      
-      &nbsp;&nbsp;&nbsp;
+
       <button class="btn btn-primary text-white" @click="descargarDatosMasiva">
         Descargar en formato ZIP
       </button>
@@ -182,7 +187,7 @@ export default {
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
     getPhotoUrl(ci) {
       const baseURL2 = API.defaults.baseURL;
-      return `${baseURL2}/biometrico/fotografia/${ci}`;
+      return `${baseURL2}/biometrico/fotografiadoc/${ci}`;
     },
     getPhotoUrl2(ci) {
       //const baseURL2 = API.defaults.baseURL
@@ -205,7 +210,7 @@ export default {
     },
     async isDifente(post) {
       try {
-        const resp = await API.get(`/biometrico/comparar-foto/${post.CIInfPer}`);
+        const resp = await API.get(`/biometrico/comparar-fotodoc/${post.CIInfPer}`);
         return resp.data.different === true;
       } catch (error) {
         console.warn("Error comparando fotos:", error);
@@ -231,7 +236,7 @@ export default {
         };
 
         // Petición al backend CON filtros incluidos
-        const response = await API.get(`${this.baseUrl}/estudiantesfoto`, { params });
+        const response = await API.get(`${this.baseUrl}/getdocentes`, { params });
 
         const data = response.data?.data || [];
         const pagination = response.data?.pagination || {};
@@ -242,11 +247,11 @@ export default {
         this.filteredpostulaciones = data;
 
         // 2. Procesar la diferencia de fotos
-        for (const post of this.filteredpostulaciones) { 
-          this.$nextTick(async () => { 
-            post.different = await this.isDifente(post); 
+        for (const post of this.filteredpostulaciones) {
+          this.$nextTick(async () => {
+            post.different = await this.isDifente(post);
           });
-         }
+        }
 
         // 3. Actualizar la tabla con los datos filtrados y paginados
 
@@ -300,7 +305,7 @@ export default {
     async descargarFoto(ci, nombre, apellido1, apellido2) {
       try {
         // Llama al endpoint que devuelve la foto binaria
-        const response = await API.get(`${this.baseUrl}/fotografia/${ci}`, {
+        const response = await API.get(`${this.baseUrl}/fotografiadoc/${ci}`, {
           responseType: "blob", // Importante para manejar datos binarios
         });
 
@@ -338,7 +343,7 @@ export default {
         );
 
         // 1. PETICIÓN ÚNICA AL NUEVO ENDPOINT
-        const response = await API.get(`${this.baseUrl}/descargarfotosmasiva`, {
+        const response = await API.get(`${this.baseUrl}/descargarfotosmasivadoc`, {
           // Aumentar el timeout del cliente para esta petición masiva
           timeout: 600000, // 10 minutos (600,000 ms). Ajusta si es necesario.
         });
@@ -376,11 +381,12 @@ export default {
             // El mime type no es crucial para JSZip, pero se puede estimar
             // o usar 'image/jpeg' por defecto si el backend no lo provee.
 
-            const carreraNombre = post.NombCarr
-              ? post.NombCarr.replace(/[\\/:*?"<>|]/g, "_").trim()
-              : "Sin_Carrera";
+            let folderName = "Otros";
+            if (post.TipoInfPer === "D") folderName = "Docente";
+            else if (post.TipoInfPer === "A") folderName = "Administrativo";
+            else if (post.TipoInfPer === "T") folderName = "Trabajador";
 
-            const folder = zip.folder(carreraNombre);
+            const folder = zip.folder(folderName);
 
             // Determinar extensión (simplemente usamos .jpg si el backend no lo indica)
             let extension = "jpg";

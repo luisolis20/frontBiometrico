@@ -79,11 +79,12 @@ const closeDropdown = () => {
   dropdownOpen.value = false
 }
 
-const signOut = () => {
+/*const signOut = () => {
   // Implement sign out logic here
   console.log('Signing out...')
+  
   closeDropdown()
-}
+}*/
 
 const handleClickOutside = (event: Event) => {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
@@ -99,3 +100,4 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
