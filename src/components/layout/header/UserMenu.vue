@@ -8,7 +8,7 @@
         <img src="/images/logo/logo-icon.svg" alt="User" />
       </span>
 
-      <span class="block mr-1 font-medium text-theme-sm">Musharof </span>
+      <span class="block mr-1 font-medium text-theme-sm">{{nombreUsuario}} </span>
 
       <ChevronDownIcon :class="{ 'rotate-180': dropdownOpen }" />
     </button>
@@ -20,56 +20,45 @@
     >
       <div>
         <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-          Musharof Chowdhury
+          {{nombreUsuario}}
         </span>
         <span class="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-          randomuser@pimjo.com
+          {{emailUsuario}}
         </span>
       </div>
 
-      <ul class="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
-        <li v-for="item in menuItems" :key="item.href">
-          <router-link
-            :to="item.href"
-            class="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-          >
-            <!-- SVG icon would go here -->
-            <component
-              :is="item.icon"
-              class="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300"
-            />
-            {{ item.text }}
-          </router-link>
-        </li>
-      </ul>
-      <router-link
-        to="/signin"
-        @click="signOut"
+      
+      <button
+        @click="cerrarsesion"
         class="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
       >
         <LogoutIcon
           class="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300"
         />
         Sign out
-      </router-link>
+      </button>
     </div>
     <!-- Dropdown End -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ChevronDownIcon, InfoCircleIcon, LogoutIcon, SettingsIcon, UserCircleIcon } from '@/icons'
+import { ChevronDownIcon, LogoutIcon} from '@/icons'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+//import { RouterLink } from 'vue-router'
+import { useUsuario } from "@/composables/useUsuario"
+// @ts-ignore
+import API from "@/assets/js/services/axios"
+
 
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
-const menuItems = [
+/*const menuItems = [
   { href: '/profile', icon: UserCircleIcon, text: 'Edit profile' },
   { href: '/profile', icon: SettingsIcon, text: 'Account settings' },
   { href: '/profile', icon: InfoCircleIcon, text: 'Support' },
-]
+]*/
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
@@ -78,17 +67,44 @@ const toggleDropdown = () => {
 const closeDropdown = () => {
   dropdownOpen.value = false
 }
+const {
+  nombreUsuario,
+  emailUsuario
+} = useUsuario()
 
-/*const signOut = () => {
-  // Implement sign out logic here
-  console.log('Signing out...')
-  
-  closeDropdown()
-}*/
 
 const handleClickOutside = (event: Event) => {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
     closeDropdown()
+  }
+}
+const cerrarsesion = async () => {
+  try {
+    const token = localStorage.getItem("token_bio")
+
+    if (!token) {
+      console.warn("⚠️ No hay token, cerrando sesión localmente...")
+      localStorage.clear()
+      window.location.href = "/biometrico"
+      return
+    }
+
+    const response = await API.get(
+      "/biometrico/logout",
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+
+    console.log("✅ Sesión cerrada:", response.data)
+
+    localStorage.clear()
+    window.location.href = "/biometrico"
+  } catch (error: any) {
+    console.error("❌ Error al cerrar sesión:", error.response?.data || error)
+    localStorage.clear()
+    window.location.href = "/biometrico"
   }
 }
 
@@ -100,4 +116,5 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
 

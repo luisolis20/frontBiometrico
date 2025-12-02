@@ -24,10 +24,11 @@
     <!-- Combobox for Carrera Filter -->
     <div class="relative w-full md:w-auto md:min-w-[280px]">
       <!-- @change llama al debouncedFilter, que inicia la nueva consulta al backend -->
-      <select v-model="selectedCarrera" @change="debouncedFilter"
+      <select v-model="selectedtipodoc" @change="debouncedFilter"
         class="appearance-none h-11 w-full rounded-lg border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
-        <option value="Todos">Todas las Carreras</option>
-        <option v-for="carrera in carrerasList" :key="carrera" :value="carrera">{{ carrera }}</option>
+        <option v-for="item in tipodocList" :key="item.value" :value="item.value">
+          {{ item.label }}
+        </option>
       </select>
       <!-- Custom Arrow Down Icon -->
       <div
@@ -114,7 +115,7 @@
             <td class="px-5 py-4 sm:px-6">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 overflow-hidden rounded-full">
-                  <img :src="getPhotoUrl2(post.CIInfPer)" @error="handleImageError" />
+                  <img :src="handleImageError" />
                 </div>
               </div>
             </td>
@@ -171,17 +172,23 @@ export default {
       grafico: null, // Mantenido, pero no se usa aquí
       photoCache: {}, // 🆕 Cache para almacenar URLs de fotos si es necesario
       debouncedFilter: debounce(this.filterAndFetch, 500),
-      selectedCarrera: 'Todos', // Valor inicial para seleccionar todas las carreras
-      carrerasList: [], // Lista de carreras únicas para el combobox
+      selectedtipodoc: 'Todos', // Valor inicial para seleccionar todas las carreras
+      tipodocList: [
+        { label: "Todos", value: "Todos" },
+        { label: "Docente", value: "D" },
+        { label: "Administrador", value: "A" },
+        { label: "Trabajador", value: "T" }
+      ], // Lista de carreras únicas para el combobox
       totalEstudiantes: 0,
+
     };
   },
   async mounted() {
     const ruta = useRoute();
     // const usuario = await getMe(); // Solo si es necesario para autenticación
     //this.idus = ruta.params.id; // Asumiendo que `id` es relevante
-    this.getAdministrativosD(1, this.searchQuery, this.selectedCarrera);
-    this.loadCarrerasList();
+    this.getAdministrativosD(1, this.searchQuery, this.selectedtipodoc);
+   
   },
   methods: {
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
@@ -193,21 +200,8 @@ export default {
       //const baseURL2 = API.defaults.baseURL
       return `${__API_BOLSA__}/b_e/vin/fotografia/${ci}`;
     },
-    async loadCarrerasList() {
-      this.cargando = true;
-      try {
-        const response = await API.get(`${this.baseUrl}/carrerasList`);
 
-        this.carrerasList = (response.data?.data || [])
-          .map(c => c.NombCarr) // Solo el nombre
-          .filter(c => c)        // Evita nulls
-          .sort();               // Ordenar A-Z
 
-      } catch (error) {
-        console.error("❌ Error al obtener carreras:", error);
-        this.carrerasList = [];
-      }
-    },
     async isDifente(post) {
       try {
         const resp = await API.get(`/biometrico/comparar-fotodoc/${post.CIInfPer}`);
@@ -218,6 +212,29 @@ export default {
 
       }
     },
+    async procesarFotosConLimite(concurrency = 3) {
+      let index = 0;
+
+      const ejecutarLote = async () => {
+        if (index >= this.filteredpostulaciones.length) return;
+
+        const start = index;
+        const end = Math.min(index + concurrency, this.filteredpostulaciones.length);
+        index = end;
+
+        const slice = this.filteredpostulaciones.slice(start, end);
+
+        await Promise.all(
+          slice.map(async (post) => {
+            post.different = await this.isDifente(post);
+          })
+        );
+
+        await ejecutarLote();
+      };
+
+      await ejecutarLote();
+    },
 
     // 🆕 Maneja el error de carga de imagen (ej: si el CI no tiene foto a pesar del filtro)
     handleImageError(event) {
@@ -226,13 +243,13 @@ export default {
         "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/480px-User_icon_2.svg.png";
     },
 
-    async getAdministrativosD(page = 1, searchQuery = "", carreraName = "Todos") {
+    async getAdministrativosD(page = 1, searchQuery = "", tipoFilter = "Todos") {
       this.cargando = true;
       try {
         const params = {
           page: page,
           search_query: searchQuery, // Parámetro para búsqueda de CI/Nombres
-          carrera_name: carreraName === 'Todos' ? '' : carreraName, // Parámetro para carrera
+          tipoFilter: tipoFilter === 'Todos' ? '' : tipoFilter, // Parámetro para carrera
         };
 
         // Petición al backend CON filtros incluidos
@@ -247,11 +264,7 @@ export default {
         this.filteredpostulaciones = data;
 
         // 2. Procesar la diferencia de fotos
-        for (const post of this.filteredpostulaciones) {
-          this.$nextTick(async () => {
-            post.different = await this.isDifente(post);
-          });
-        }
+        await this.procesarFotosConLimite(3);
 
         // 3. Actualizar la tabla con los datos filtrados y paginados
 
@@ -272,7 +285,7 @@ export default {
       // 1. Siempre se va a la página 1 cuando se aplican nuevos filtros
       this.currentPage = 1;
       // 2. Llama a la función principal con los filtros actuales
-      this.getAdministrativosD(this.currentPage, this.searchQuery, this.selectedCarrera);
+      this.getAdministrativosD(this.currentPage, this.searchQuery, this.selectedtipodoc);
     },
 
     onlyNumbers(event) {
@@ -286,20 +299,17 @@ export default {
 
     nextPage() {
       if (this.currentPage < this.lastPage && !this.cargando) {
-        this.getAdministrativosD(this.currentPage + 1, this.searchQuery, this.selectedCarrera);
+        this.getAdministrativosD(this.currentPage + 1, this.searchQuery, this.selectedtipodoc);
       }
     },
 
     previousPage() {
       if (this.currentPage > 1 && !this.cargando) {
-        this.getAdministrativosD(this.currentPage - 1, this.searchQuery, this.selectedCarrera);
+        this.getAdministrativosD(this.currentPage - 1, this.searchQuery, this.selectedtipodoc);
       }
     },
 
-    actualizar() {
-      // Simplemente recarga la página actual de datos
-      this.getAdministrativosD(this.currentPage, this.searchQuery, this.selectedCarrera);
-    },
+
 
     // 🆕 Descarga de una sola foto
     async descargarFoto(ci, nombre, apellido1, apellido2) {

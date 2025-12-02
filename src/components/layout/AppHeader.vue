@@ -32,7 +32,7 @@
               fill="currentColor" />
           </svg>
         </button>
-        <b>Panel Administrativo - Acceso Facial</b>
+        <span class="text-theme-sm">Panel Administrativo - Acceso Facial</span>
       </div>
 
       <div :class="[isApplicationMenuOpen ? 'flex' : 'hidden']"

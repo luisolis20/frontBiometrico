@@ -135,7 +135,7 @@
     </div>
     &nbsp;&nbsp;&nbsp;&nbsp;
     <div class="d-flex justify-content-center mb-4" v-if="!this.cargando">
-      
+
       &nbsp;&nbsp;&nbsp;
       <button class="btn btn-primary text-white" @click="descargarDatosMasiva">
         Descargar en formato ZIP
@@ -165,11 +165,17 @@ export default {
       buscando: false, // Mantenido, pero no se usa en la lógica de paginación actual
       grafico: null, // Mantenido, pero no se usa aquí
       photoCache: {}, // 🆕 Cache para almacenar URLs de fotos si es necesario
-      debouncedFilter: debounce(this.filterAndFetch, 500),
+      debouncedFilter: null,
       selectedCarrera: 'Todos', // Valor inicial para seleccionar todas las carreras
       carrerasList: [], // Lista de carreras únicas para el combobox
       totalEstudiantes: 0,
     };
+  },
+  created() {
+    // Ahora sí puedes usar this.filterAndFetch
+    this.debouncedFilter = debounce(() => {
+      this.filterAndFetch();
+    }, 900);
   },
   async mounted() {
     const ruta = useRoute();
@@ -193,10 +199,7 @@ export default {
       try {
         const response = await API.get(`${this.baseUrl}/carrerasList`);
 
-        this.carrerasList = (response.data?.data || [])
-          .map(c => c.NombCarr) // Solo el nombre
-          .filter(c => c)        // Evita nulls
-          .sort();               // Ordenar A-Z
+        this.carrerasList = response.data?.data || []
 
       } catch (error) {
         console.error("❌ Error al obtener carreras:", error);
@@ -213,6 +216,30 @@ export default {
 
       }
     },
+    async procesarFotosConLimite(concurrency = 3) {
+      let index = 0;
+
+      const ejecutarLote = async () => {
+        if (index >= this.filteredpostulaciones.length) return;
+
+        const start = index;
+        const end = Math.min(index + concurrency, this.filteredpostulaciones.length);
+        index = end;
+
+        const slice = this.filteredpostulaciones.slice(start, end);
+
+        await Promise.all(
+          slice.map(async (post) => {
+            post.different = await this.isDifente(post);
+          })
+        );
+
+        await ejecutarLote();
+      };
+
+      await ejecutarLote();
+    },
+
 
     // 🆕 Maneja el error de carga de imagen (ej: si el CI no tiene foto a pesar del filtro)
     handleImageError(event) {
@@ -242,11 +269,7 @@ export default {
         this.filteredpostulaciones = data;
 
         // 2. Procesar la diferencia de fotos
-        for (const post of this.filteredpostulaciones) { 
-          this.$nextTick(async () => { 
-            post.different = await this.isDifente(post); 
-          });
-         }
+        await this.procesarFotosConLimite(3);
 
         // 3. Actualizar la tabla con los datos filtrados y paginados
 
