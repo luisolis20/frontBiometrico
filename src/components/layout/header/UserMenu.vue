@@ -58,7 +58,7 @@ const dropdownRef = ref<HTMLElement | null>(null)
   { href: '/profile', icon: UserCircleIcon, text: 'Edit profile' },
   { href: '/profile', icon: SettingsIcon, text: 'Account settings' },
   { href: '/profile', icon: InfoCircleIcon, text: 'Support' },
-]*/
+]*/ 
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value

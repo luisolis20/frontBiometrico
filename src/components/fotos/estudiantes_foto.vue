@@ -191,8 +191,8 @@ export default {
       return `${baseURL2}/biometrico/fotografia/${ci}`;
     },
     getPhotoUrl2(ci) {
-      //const baseURL2 = API.defaults.baseURL
-      return `${__API_BOLSA__}/b_e/vin/fotografia/${ci}`;
+      const baseURL2 = API.defaults.baseURL
+      return `${baseURL2}/biometrico/fotografiaHK/${ci}`;
     },
     async loadCarrerasList() {
       this.cargando = true;
@@ -208,7 +208,7 @@ export default {
     },
     async isDifente(post) {
       try {
-        const resp = await API.get(`/biometrico/comparar-foto/${post.CIInfPer}`);
+        const resp = await API.get(`/biometrico/comparar-foto32/${post.CIInfPer}`);
         return resp.data.different === true;
       } catch (error) {
         console.warn("Error comparando fotos:", error);
@@ -269,7 +269,7 @@ export default {
         this.filteredpostulaciones = data;
 
         // 2. Procesar la diferencia de fotos
-        await this.procesarFotosConLimite(3);
+        //await this.procesarFotosConLimite(3);
 
         // 3. Actualizar la tabla con los datos filtrados y paginados
 
