@@ -115,13 +115,13 @@
             <td class="px-5 py-4 sm:px-6">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 overflow-hidden rounded-full">
-                  <img :src="handleImageError" />
+                  <img :src="getPhotoUrl2(post.CIInfPer)" />
                 </div>
               </div>
             </td>
             <td class="px-5 py-4 sm:px-6">
               <button v-if="post.different"
-                class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
+                class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
                 Actualizar foto
               </button>
               <span v-else class="text-gray-400 text-xs">Fotos similares</span>
@@ -197,8 +197,8 @@ export default {
       return `${baseURL2}/biometrico/fotografiadoc/${ci}`;
     },
     getPhotoUrl2(ci) {
-      //const baseURL2 = API.defaults.baseURL
-      return `${__API_BOLSA__}/b_e/vin/fotografia/${ci}`;
+      const baseURL2 = API.defaults.baseURL
+      return `${baseURL2}/biometrico/gethick/${ci}`;
     },
 
 
