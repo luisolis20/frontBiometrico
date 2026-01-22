@@ -61,7 +61,7 @@
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Foto HC
+                Registrado en HIKCENTRAL
               </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
@@ -99,7 +99,7 @@
                 Docente
               </p>
               <p class="text-gray-500 text-theme-sm dark:text-gray-400" v-else-if="post.TipoInfPer === 'A'">
-                Administrador
+                Administrativo
               </p>
               <p class="text-gray-500 text-theme-sm dark:text-gray-400" v-else-if="post.TipoInfPer === 'T'">
                 Trabajador
@@ -113,18 +113,41 @@
               </div>
             </td>
             <td class="px-5 py-4 sm:px-6">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 overflow-hidden rounded-full">
-                  <img :src="getPhotoUrl2(post.CIInfPer)" />
-                </div>
+              <div class="flex items-center">
+                <span v-if="post.estaRegistradoHC === null" class="flex items-center gap-1 text-gray-400 text-theme-xs">
+                  <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"></svg>
+                  Verificando...
+                </span>
+
+                <span v-else-if="post.estaRegistradoHC === true"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  Sí
+                </span>
+
+                <span v-else
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  No
+                </span>
               </div>
             </td>
+
+
             <td class="px-5 py-4 sm:px-6">
-              <button v-if="post.different" @click="abrirModalEdicion(post)"
+              <button @click="abrirModalEdicion(post)"
                 class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
                 Actualizar foto
               </button>
-              <span v-else class="text-gray-400 text-xs">Fotos similares</span>
+
             </td>
           </tr>
         </tbody>
@@ -163,10 +186,10 @@
 
           <div class="px-6 pt-8 lg:px-11 lg:pt-11">
             <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Editar Plato
+              Usuario
             </h4>
             <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-              Los datos mostrados son los actuales del plato. Realice los cambios necesarios.
+              Los datos mostrados son los actuales del usuario registrado en el SIAD. Realice los cambios necesarios.
             </p>
           </div>
 
@@ -174,55 +197,71 @@
             <div class="px-6 pb-4 overflow-y-auto custom-scrollbar lg:px-11">
               <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
-                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nombre del
-                    Plato</label>
-                  <input type="text" v-model="objetoeditar.nombre_rol"
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white" />
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nombres</label>
+                  <input type="text" v-model="objetoeditar.nombre_us"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white"
+                    disabled />
                 </div>
 
                 <div>
-                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Categoría</label>
-                  <div class="relative z-20">
-                    
-                  </div>
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Correo
+                    Personal</label>
+                  <input type="text" v-model="objetoeditar.mailPer"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white"
+                    disabled />
                 </div>
 
                 <div>
                   <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Precio
                   </label>
-                  <input type="text" v-model="objetoeditar.descripcion"
-                    placeholder="0.00"
+                  <input type="text" v-model="objetoeditar.TipoInfPer" placeholder="0.00"
                     class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white" />
                 </div>
 
-                
+
               </div>
 
-              
+
 
               <div class="file-uploader mt-5 pb-6">
-                <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">Imagen del Plato</label>
+                <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">Foto</label>
 
-                <div v-if="objetoeditar.id_rol"
-                  class="mb-4 flex justify-center">
+                <div v-if="objetoeditar.CIInfPer" class="mb-4 flex justify-center">
                   <div class="relative">
-                    <img :src="getPhotoUrl(objetoeditar.id_rol)"
+                    <img :src="getPhotoUrl(objetoeditar.CIInfPer)"
                       class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
                       @error="handleImageError" />
                     <span
-                      class="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">Actual</span>
+                      class="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">SIAD</span>
+                  </div>
+                  &nbsp;&nbsp;&nbsp;
+                  <div class="relative">
+                    <img :src="getPhotoUrl2(objetoeditar.CIInfPer)" loading="lazy"
+                      class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
+                      @error="handleImageError" />
+                    <span
+                      class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">HIKCENTRAL</span>
                   </div>
                 </div>
 
-                <div :id="'edit-' + dropzoneId"
-                  class="dropzone border-gray-300 border-dashed rounded-xl bg-gray-50 dark:bg-gray-900 min-h-[140px] flex items-center justify-center hover:border-brand-500 transition-colors">
-                  <div class="dz-message m-0 text-center">
-                    <span class="font-medium underline cursor-pointer text-brand-500 text-sm">Cargar nueva foto para
-                      reemplazar</span>
-                  </div>
-                </div>
+
               </div>
+              <div class="mt-2">
+                <span v-if="cargandoStatus" class="text-xs text-gray-400">Verificando en HikCentral...</span>
+                <span v-else :class="estaRegistrado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                  class="px-2 py-1 rounded-md text-xs font-bold uppercase">
+                  {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3 ...">
+                <button @click="ejecutarComparacion" type="button" :disabled="comparando || !estaRegistrado"
+                  class="flex w-full justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition-all">
+                  {{ comparando ? 'Comparando...' : 'Comparar Fotos' }}
+                </button>
+              </div>
+
             </div>
 
             <div
@@ -231,11 +270,11 @@
                 class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto">
                 Cerrar
               </button>
-              <button  type="button"
+              <button type="button" @click="registrarEnHikCentral(objetoeditar.CIInfPer)"
                 class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
                 Guardar Cambios
               </button>
-               <!-- Modal de Edición de Usuario 
+              <!-- Modal de Edición de Usuario 
               <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>-->
             </div>
           </form>
@@ -280,11 +319,10 @@ export default {
       postulacionespr: [],
       filteredpostulaciones: [],
       objetoeditar: {
-        id_rol: 0,
-        nombre_rol: "",
-        descripcion: "",
-        imagen: "",
-        previewFoto: "",
+        CIInfPer: 0,
+        nombre_us: "",
+        mailPer: "",
+        TipoInfPer: "",
       },
       searchQuery: "",
       cargando: false,
@@ -298,11 +336,14 @@ export default {
       tipodocList: [
         { label: "Todos", value: "Todos" },
         { label: "Docente", value: "D" },
-        { label: "Administrador", value: "A" },
+        { label: "Administrativo", value: "A" },
         { label: "Trabajador", value: "T" }
       ], // Lista de carreras únicas para el combobox
       totalEstudiantes: 0,
       refreshKey: Date.now(),
+      estaRegistrado: false,
+      cargandoStatus: false,
+      comparando: false,
     };
   },
   async mounted() {
@@ -310,19 +351,97 @@ export default {
     // const usuario = await getMe(); // Solo si es necesario para autenticación
     //this.idus = ruta.params.id; // Asumiendo que `id` es relevante
     this.getAdministrativosD(1, this.searchQuery, this.selectedtipodoc);
-   
+
   },
   methods: {
     abrirModalEdicion(user) {
       // Clonamos el objeto para no modificar la tabla directamente antes de guardar
       this.objetoeditar = {
-        id_rol: user.CIInfPer,
-        nombre_rol: user.NombInfPer,
-        descripcion: user.ApellInfPer,
-        imagen: user.imagen,
-        previewFoto: "data:image/jpeg;base64," + user.imagen,
+        CIInfPer: user.CIInfPer,
+        nombre_us: user.NombInfPer + ' ' + user.ApellMatInfPer + ' ' + user.ApellInfPer,
+        mailPer: user.mailPer,
+
       };
+      if (user.TipoInfPer === 'D') {
+        this.objetoeditar.TipoInfPer = 'DOCENTE';
+      }
+      else if (user.TipoInfPer === 'A') {
+        this.objetoeditar.TipoInfPer = 'ADMINISTRATIVO';
+      }
+      else if (user.TipoInfPer === 'T') {
+        this.objetoeditar.TipoInfPer = 'TRABAJADOR';
+      }
+      this.estaRegistrado = false;
       this.$.setupState.isEditModalOpen = true;
+      this.verificarRegistroHC(user.CIInfPer);
+    },
+    async verificarRegistroHC(ci) {
+      this.cargandoStatus = true;
+      try {
+        const response = await API.get(`${this.baseUrl}/getperson/${ci}?v=${this.refreshKey}`);
+        this.estaRegistrado = response.data.registrado;
+      } catch (error) {
+        this.estaRegistrado = false;
+      } finally {
+        this.cargandoStatus = false;
+      }
+    },
+    // Nuevo método para validar los estados de la tabla actual
+    async verificarRegistrosMasivos() {
+      // Para no saturar, verificamos solo los que están en la vista actual
+      for (let post of this.filteredpostulaciones) {
+        try {
+          const res = await API.get(`${this.baseUrl}/getperson/${post.CIInfPer}`);
+          post.estaRegistradoHC = res.data.registrado;
+          this.estaRegistrado = true;
+        } catch (e) {
+          post.estaRegistradoHC = false;
+          this.estaRegistrado = false;
+        }
+      }
+    },
+    async registrarEnHikCentral(post) {
+      // Confirmación simple
+      if (!confirm(`¿Deseas registrar a ${post} en HikCentral?`)) return;
+
+      this.cargando = true; // Bloquear UI para evitar clics repetidos
+      try {
+        const response = await API.post(`${this.baseUrl}/sync-hikcentral/${post}`);
+
+        // Si el código que retorna Artemis es "0" es éxito
+        if (response.data.code === "0" || response.data.msg === "Success") {
+          alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
+
+          // Actualizar el estado en la tabla localmente sin recargar
+          post.estaRegistradoHC = true;
+        } else {
+          alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
+        }
+      } catch (error) {
+        console.error("Error al sincronizar:", error);
+        const mensaje = error.response?.data?.details?.msg || "Error desconocido al conectar con el Biométrico";
+        alert(`❌ Error: ${mensaje}`);
+      } finally {
+        this.cargando = false;
+      }
+    },
+    async ejecutarComparacion() {
+      this.comparando = true;
+      try {
+        const ci = this.objetoeditar.CIInfPer;
+        const { data } = await API.get(`${this.baseUrl}/compare-hikdoc/${ci}?v=${this.refreshKey}`);
+
+        if (data.identicas) {
+          // Usar un alert o notificación con el porcentaje
+          alert(`✅ Match: ${data.similitud} de similitud.`);
+        } else {
+          alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+        }
+      } catch (error) {
+        alert("Error en la comparación");
+      } finally {
+        this.comparando = false;
+      }
     },
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
     getPhotoUrl(ci) {
@@ -334,40 +453,6 @@ export default {
       return `${baseURL2}/biometrico/gethick/${ci}?v=${this.refreshKey}`;
     },
 
-
-    async isDifente(post) {
-      try {
-        const resp = await API.get(`/biometrico/comparar-fotodoc/${post.CIInfPer}`);
-        return resp.data.different === true;
-      } catch (error) {
-        console.warn("Error comparando fotos:", error);
-        return true; // ante error considerar diferente
-
-      }
-    },
-    async procesarFotosConLimite(concurrency = 3) {
-      let index = 0;
-
-      const ejecutarLote = async () => {
-        if (index >= this.filteredpostulaciones.length) return;
-
-        const start = index;
-        const end = Math.min(index + concurrency, this.filteredpostulaciones.length);
-        index = end;
-
-        const slice = this.filteredpostulaciones.slice(start, end);
-
-        await Promise.all(
-          slice.map(async (post) => {
-            post.different = await this.isDifente(post);
-          })
-        );
-
-        await ejecutarLote();
-      };
-
-      await ejecutarLote();
-    },
 
     // 🆕 Maneja el error de carga de imagen (ej: si el CI no tiene foto a pesar del filtro)
     handleImageError(event) {
@@ -396,11 +481,7 @@ export default {
         this.totalEstudiantes = response.data.pagination.total;
         this.filteredpostulaciones = data;
 
-        // 2. Procesar la diferencia de fotos
-        await this.procesarFotosConLimite(3);
-
-        // 3. Actualizar la tabla con los datos filtrados y paginados
-
+        this.verificarRegistrosMasivos();
 
       } catch (error) {
         console.warn("⚠️ Error al obtener datos:", error?.response?.data || error);
