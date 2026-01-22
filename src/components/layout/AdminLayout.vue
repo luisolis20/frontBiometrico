@@ -28,10 +28,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useSidebar } from '@/composables/useSidebar'
 import AppHeader from './AppHeader.vue'
 import AppSidebar from './AppSidebar.vue'
 import Backdrop from './Backdrop.vue'
+
+// En JS no necesitas definir tipos para la desestructuración
 const { isExpanded, isHovered } = useSidebar()
 </script>

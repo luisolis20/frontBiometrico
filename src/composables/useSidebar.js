@@ -1,41 +1,6 @@
-// import { ref } from 'vue'
-
-// export function useSidebar() {
-//   const isMobileOpen = ref(false)
-//   const isDesktopOpen = ref(true)
-
-//   const toggleSidebar = () => {
-//     isDesktopOpen.value = !isDesktopOpen.value
-//   }
-
-//   const toggleMobileSidebar = () => {
-//     isMobileOpen.value = !isMobileOpen.value
-//   }
-
-//   return {
-//     isMobileOpen,
-//     isDesktopOpen,
-//     toggleSidebar,
-//     toggleMobileSidebar,
-//   }
-// }
-
 import { ref, computed, onMounted, onUnmounted, provide, inject } from 'vue'
-import type { Ref } from 'vue' //
 
-interface SidebarContextType {
-  isExpanded: Ref<boolean>
-  isMobileOpen: Ref<boolean>
-  isHovered: Ref<boolean>
-  activeItem: Ref<string | null>
-  openSubmenu: Ref<string | null>
-  toggleSidebar: () => void
-  toggleMobileSidebar: () => void
-  setIsHovered: (isHovered: boolean) => void
-  setActiveItem: (item: string | null) => void
-  toggleSubmenu: (item: string) => void
-}
-
+// En JS no necesitamos interfaces ni tipos de Ref
 const SidebarSymbol = Symbol()
 
 export function useSidebarProvider() {
@@ -43,8 +8,8 @@ export function useSidebarProvider() {
   const isMobileOpen = ref(false)
   const isMobile = ref(false)
   const isHovered = ref(false)
-  const activeItem = ref<string | null>(null)
-  const openSubmenu = ref<string | null>(null)
+  const activeItem = ref(null)
+  const openSubmenu = ref(null)
 
   const handleResize = () => {
     const mobile = window.innerWidth < 768
@@ -75,19 +40,20 @@ export function useSidebarProvider() {
     isMobileOpen.value = !isMobileOpen.value
   }
 
-  const setIsHovered = (value: boolean) => {
+  const setIsHovered = (value) => {
     isHovered.value = value
   }
 
-  const setActiveItem = (item: string | null) => {
+  const setActiveItem = (item) => {
     activeItem.value = item
   }
 
-  const toggleSubmenu = (item: string) => {
+  const toggleSubmenu = (item) => {
     openSubmenu.value = openSubmenu.value === item ? null : item
   }
 
-  const context: SidebarContextType = {
+  // Definimos el objeto de contexto sin la interfaz SidebarContextType
+  const context = {
     isExpanded: computed(() => (isMobile.value ? false : isExpanded.value)),
     isMobileOpen,
     isHovered,
@@ -105,8 +71,8 @@ export function useSidebarProvider() {
   return context
 }
 
-export function useSidebar(): SidebarContextType {
-  const context = inject<SidebarContextType>(SidebarSymbol)
+export function useSidebar() {
+  const context = inject(SidebarSymbol)
   if (!context) {
     throw new Error(
       'useSidebar must be used within a component that has SidebarProvider as an ancestor',

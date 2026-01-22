@@ -37,8 +37,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  pageTitle: string
-}>()
+<script setup>
+defineProps({
+  pageTitle: {
+    type: String,
+    required: true
+  }
+});
 </script>

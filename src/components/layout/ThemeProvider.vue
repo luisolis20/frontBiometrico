@@ -2,12 +2,11 @@
   <slot></slot>
 </template>
  
-<script setup lang="ts">
+<script setup>
 import { ref, provide, onMounted, watch, computed } from 'vue'
 
-type Theme = 'light' | 'dark'
-
-const theme = ref<Theme>('light')
+// En JS no definimos "type Theme"
+const theme = ref('light')
 const isInitialized = ref(false)
 
 const isDarkMode = computed(() => theme.value === 'dark')
@@ -17,8 +16,9 @@ const toggleTheme = () => {
 }
 
 onMounted(() => {
-  const savedTheme = localStorage.getItem('theme') as Theme | null
-  const initialTheme = savedTheme || 'light' // Default to light theme
+  // Eliminamos el "as Theme | null"
+  const savedTheme = localStorage.getItem('theme')
+  const initialTheme = savedTheme || 'light' 
 
   theme.value = initialTheme
   isInitialized.value = true
@@ -41,9 +41,10 @@ provide('theme', {
 })
 </script>
 
-<script lang="ts">
+<script>
 import { inject } from 'vue'
 
+// Quitamos el tipado de la función
 export function useTheme() {
   const theme = inject('theme')
   if (!theme) {

@@ -38,10 +38,20 @@
   </div>
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  title: string;
-  className?: string;
-  desc?: string;
-}>();
+<script setup>
+defineProps({
+  title: {
+    type: String,
+    required: true
+  },
+  className: {
+    type: String,
+    default: ''
+  },
+  desc: {
+    type: String,
+    default: ''
+  }
+});
 </script>
+

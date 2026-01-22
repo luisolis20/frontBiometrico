@@ -1,5 +1,4 @@
 import { computed } from "vue"
-// @ts-ignore
 import store from "@/store"
 
 export function useUsuario() {

@@ -14,43 +14,21 @@ module.exports = defineConfig({
 
   productionSourceMap: false, // ❌ Evita que el navegador muestre código fuente (map files)
 
-  // ===================================================
-  // 🚀 ADICIÓN CLAVE PARA TYPESCRIPT (chainWebpack)
-  // ===================================================
-  chainWebpack: config => {
-    // 1. Configurar la regla para archivos .ts
-    config.module
-      .rule('ts')
-      .test(/\.ts$/)
-      .use('ts-loader')
-      .loader('ts-loader')
-      .options({
-        // Esto es CLAVE para que ts-loader procese TS dentro de los archivos .vue
-        appendTsSuffixTo: [/\.vue$/], 
-      });
-
-    // Opcional: Si usas Vue 3 con <script setup lang="ts">,
-  // a veces es necesario asegurar que vue-loader sepa cómo manejarlo.
-    config.module
-      .rule('vue')
-      .use('vue-loader')
-      .tap(options => {
-        // Asegura que las opciones de compilación sean correctas si necesitas algo específico de Vue 3
-        return options;
-      });
+   chainWebpack: config => {
+    // ELIMINADO: Ya no necesitamos la regla 'ts' ni 'ts-loader'
+    // Webpack por defecto ya sabe manejar .js y .vue
   },
-  // ===================================================
   
   configureWebpack: {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src/'),
       },
-      // Esto es CLAVE para que Webpack sepa qué extensiones buscar:
-      extensions: ['.js', '.jsx', '.vue', '.ts', '.tsx'], 
+      // Simplificamos las extensiones (puedes quitar .ts y .tsx)
+      extensions: ['.js', '.jsx', '.vue'], 
     },
     optimization: {
-      minimize: true, // ✅ Minifica todo el código JS y CSS
+      minimize: true,
       splitChunks: {
         chunks: 'all',
       },

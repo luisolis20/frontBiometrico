@@ -42,23 +42,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ChevronDownIcon, LogoutIcon} from '@/icons'
+<script setup>
+import { ChevronDownIcon, LogoutIcon } from '@/icons'
 import { onMounted, onUnmounted, ref } from 'vue'
-//import { RouterLink } from 'vue-router'
 import { useUsuario } from "@/composables/useUsuario"
-// @ts-ignore
 import API from "@/assets/js/services/axios"
 
-
 const dropdownOpen = ref(false)
-const dropdownRef = ref<HTMLElement | null>(null)
-
-/*const menuItems = [
-  { href: '/profile', icon: UserCircleIcon, text: 'Edit profile' },
-  { href: '/profile', icon: SettingsIcon, text: 'Account settings' },
-  { href: '/profile', icon: InfoCircleIcon, text: 'Support' },
-]*/ 
+const dropdownRef = ref(null)
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
@@ -67,17 +58,18 @@ const toggleDropdown = () => {
 const closeDropdown = () => {
   dropdownOpen.value = false
 }
+
 const {
   nombreUsuario,
   emailUsuario
 } = useUsuario()
 
-
-const handleClickOutside = (event: Event) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+const handleClickOutside = (event) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
     closeDropdown()
   }
 }
+
 const cerrarsesion = async () => {
   try {
     const token = localStorage.getItem("token_bio")
@@ -101,7 +93,7 @@ const cerrarsesion = async () => {
 
     localStorage.clear()
     window.location.href = "/biometrico"
-  } catch (error: any) {
+  } catch (error) {
     console.error("❌ Error al cerrar sesión:", error.response?.data || error)
     localStorage.clear()
     window.location.href = "/biometrico"

@@ -70,12 +70,12 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <tr class="border-t border-gray-100 dark:border-gray-800" v-if="this.cargando">
+          <tr class="border-t border-gray-100 dark:border-gray-800" v-if="cargando">
             <td class="px-5 py-4 sm:px-6" colspan="9">
               <h3 class="text-center">Cargando....</h3>
             </td>
           </tr>
-          <tr v-else v-for="post in this.filteredpostulaciones" :key="post.CIInfPer"
+          <tr v-else v-for="post in filteredpostulaciones" :key="post.CIInfPer"
             class="border-t border-gray-100 dark:border-gray-800">
             <td class="px-5 py-4 sm:px-6">
               <div class="flex items-center gap-3">
@@ -120,7 +120,7 @@
               </div>
             </td>
             <td class="px-5 py-4 sm:px-6">
-              <button v-if="post.different"
+              <button v-if="post.different" @click="abrirModalEdicion(post)"
                 class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
                 Actualizar foto
               </button>
@@ -141,19 +141,134 @@
       </button>
     </div>
     &nbsp;&nbsp;&nbsp;&nbsp;
-    <div class="d-flex justify-content-center mb-4" v-if="!this.cargando">
+    <div class="d-flex justify-content-center mb-4" v-if="!cargando">
 
       <button class="btn btn-primary text-white" @click="descargarDatosMasiva">
         Descargar en formato ZIP
       </button>
     </div>
+    <!-- Modal de Edición de Usuario -->
+    <Modal v-if="isEditModalOpen" @close="isEditModalOpen = false">
+      <template #body>
+        <div
+          class="relative w-full max-w-[700px] max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white dark:bg-gray-900 shadow-2xl">
+
+          <button @click="isEditModalOpen = false"
+            class="transition-color absolute right-5 top-5 z-999 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.07]">
+            <svg class="fill-current" width="24" height="24" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M6.04289 16.5418C5.65237 16.9323 5.65237 17.5655 6.04289 17.956C6.43342 18.3465 7.06658 18.3465 7.45711 17.956L11.9987 13.4144L16.5408 17.9565C16.9313 18.347 17.5645 18.347 17.955 17.9565C18.3455 17.566 18.3455 16.9328 17.955 16.5423L13.4129 12.0002L17.955 7.45808C18.3455 7.06756 18.3455 6.43439 17.955 6.04387C17.5645 5.65335 16.9313 5.65335 16.5408 6.04387L11.9987 10.586L7.45711 6.04439C7.06658 5.65386 6.43342 5.65386 6.04289 6.04439C5.65237 6.43491 5.65237 7.06808 6.04289 7.4586L10.5845 12.0002L6.04289 16.5418Z" />
+            </svg>
+          </button>
+
+          <div class="px-6 pt-8 lg:px-11 lg:pt-11">
+            <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+              Editar Plato
+            </h4>
+            <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+              Los datos mostrados son los actuales del plato. Realice los cambios necesarios.
+            </p>
+          </div>
+
+          <form class="flex flex-col flex-1 overflow-hidden">
+            <div class="px-6 pb-4 overflow-y-auto custom-scrollbar lg:px-11">
+              <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                <div>
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nombre del
+                    Plato</label>
+                  <input type="text" v-model="objetoeditar.nombre_rol"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white" />
+                </div>
+
+                <div>
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Categoría</label>
+                  <div class="relative z-20">
+                    
+                  </div>
+                </div>
+
+                <div>
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Precio
+                  </label>
+                  <input type="text" v-model="objetoeditar.descripcion"
+                    placeholder="0.00"
+                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white" />
+                </div>
+
+                
+              </div>
+
+              
+
+              <div class="file-uploader mt-5 pb-6">
+                <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">Imagen del Plato</label>
+
+                <div v-if="objetoeditar.id_rol"
+                  class="mb-4 flex justify-center">
+                  <div class="relative">
+                    <img :src="getPhotoUrl(objetoeditar.id_rol)"
+                      class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
+                      @error="handleImageError" />
+                    <span
+                      class="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">Actual</span>
+                  </div>
+                </div>
+
+                <div :id="'edit-' + dropzoneId"
+                  class="dropzone border-gray-300 border-dashed rounded-xl bg-gray-50 dark:bg-gray-900 min-h-[140px] flex items-center justify-center hover:border-brand-500 transition-colors">
+                  <div class="dz-message m-0 text-center">
+                    <span class="font-medium underline cursor-pointer text-brand-500 text-sm">Cargar nueva foto para
+                      reemplazar</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11">
+              <button @click="isEditModalOpen = false" type="button"
+                class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto">
+                Cerrar
+              </button>
+              <button  type="button"
+                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
+                Guardar Cambios
+              </button>
+               <!-- Modal de Edición de Usuario 
+              <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>-->
+            </div>
+          </form>
+        </div>
+      </template>
+    </Modal>
   </div>
 </template>
 
+<script setup>
+import { ref } from 'vue'
+import Modal from '@/components/Modal/Modal.vue'
+
+const isProfileAddressModal = ref(false)
+const isEditModalOpen = ref(false)
+const showPassword = ref(false)
+// Creamos una función para que el bloque de abajo pueda cerrar el modal
+const cerrarModalDesdeAfuera = () => {
+  isProfileAddressModal.value = false
+}
+
+// Exponemos la variable y la función
+defineExpose({
+  isProfileAddressModal,
+  isEditModalOpen,
+  cerrarModalDesdeAfuera
+})
+</script>
 <script>
 import API from "@/assets/js/services/axios";
 import { useRoute } from "vue-router";
 import JSZip from "jszip";
+import Modal from '@/components/Modal/Modal.vue'
 import { saveAs } from "file-saver";
 import debounce from 'lodash.debounce';
 
@@ -164,6 +279,13 @@ export default {
       baseUrl: "/biometrico", // Ajustado para usar la base
       postulacionespr: [],
       filteredpostulaciones: [],
+      objetoeditar: {
+        id_rol: 0,
+        nombre_rol: "",
+        descripcion: "",
+        imagen: "",
+        previewFoto: "",
+      },
       searchQuery: "",
       cargando: false,
       currentPage: 1,
@@ -180,7 +302,7 @@ export default {
         { label: "Trabajador", value: "T" }
       ], // Lista de carreras únicas para el combobox
       totalEstudiantes: 0,
-
+      refreshKey: Date.now(),
     };
   },
   async mounted() {
@@ -191,14 +313,25 @@ export default {
    
   },
   methods: {
+    abrirModalEdicion(user) {
+      // Clonamos el objeto para no modificar la tabla directamente antes de guardar
+      this.objetoeditar = {
+        id_rol: user.CIInfPer,
+        nombre_rol: user.NombInfPer,
+        descripcion: user.ApellInfPer,
+        imagen: user.imagen,
+        previewFoto: "data:image/jpeg;base64," + user.imagen,
+      };
+      this.$.setupState.isEditModalOpen = true;
+    },
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
     getPhotoUrl(ci) {
       const baseURL2 = API.defaults.baseURL;
-      return `${baseURL2}/biometrico/fotografiadoc/${ci}`;
+      return `${baseURL2}/biometrico/fotografiadoc/${ci}?v=${this.refreshKey}`;
     },
     getPhotoUrl2(ci) {
       const baseURL2 = API.defaults.baseURL
-      return `${baseURL2}/biometrico/gethick/${ci}`;
+      return `${baseURL2}/biometrico/gethick/${ci}?v=${this.refreshKey}`;
     },
 
 
