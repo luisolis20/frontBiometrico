@@ -23,21 +23,38 @@
 
     <!-- Combobox for Carrera Filter -->
     <div class="relative w-full md:w-auto md:min-w-[280px]">
-      <!-- @change llama al debouncedFilter, que inicia la nueva consulta al backend -->
       <select v-model="selectedCarrera" @change="debouncedFilter"
         class="appearance-none h-11 w-full rounded-lg border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
         <option value="Todos">Todas las Carreras</option>
-        <option v-for="carrera in carrerasList" :key="carrera" :value="carrera">{{ carrera }}</option>
+        <option v-for="carrera in carrerasList" :key="carrera.id" :value="carrera.nombre">
+          {{ carrera.nombre }}
+        </option>
       </select>
-      <!-- Custom Arrow Down Icon -->
+
       <div
         class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700 dark:text-gray-300">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
       </div>
     </div>
   </div>
+  <div class="mb-4 p-4 border rounded-xl bg-gray-50 dark:bg-gray-800" v-if="syncMode">
+    <div class="flex justify-between mb-2">
+      <span class="text-sm font-medium">Sincronizando con HikCentral: {{ syncIndex }} / {{ pendientes.length }}</span>
+      <span class="text-sm font-bold">{{ progressSync }}%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+      <div class="bg-brand-500 h-2.5 rounded-full transition-all duration-300" :style="{ width: progressSync + '%' }">
+      </div>
+    </div>
+    <p class="text-xs mt-2 text-gray-500 italic">Procesando: {{ currentSyncName }}</p>
+  </div>
+
+  <button @click="iniciarSincronizacionMasiva" :disabled="cargando || syncMode"
+    class="btn btn-primary bg-blue-600 text-white px-4 py-2 rounded-lg">
+    Sincronizar Pendientes (Masivo)
+  </button>
   <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
     <div class="max-w-full overflow-x-auto custom-scrollbar">
       <table class="min-w-full">
@@ -55,12 +72,12 @@
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Foto SIAD
+                Foto HIKCENTRAL
               </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Foto HC
+                Registrado en HIKCENTRAL
               </p>
             </th>
             <th class="px-5 py-3 text-left w-2/11 sm:px-6">
@@ -69,12 +86,12 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <tr class="border-t border-gray-100 dark:border-gray-800" v-if="this.cargando">
+          <tr class="border-t border-gray-100 dark:border-gray-800" v-if="cargando">
             <td class="px-5 py-4 sm:px-6" colspan="9">
               <h3 class="text-center">Cargando....</h3>
             </td>
           </tr>
-          <tr v-else v-for="post in this.filteredpostulaciones" :key="post.CIInfPer"
+          <tr v-else v-for="post in filteredpostulaciones" :key="post.CIInfPer"
             class="border-t border-gray-100 dark:border-gray-800">
             <td class="px-5 py-4 sm:px-6">
               <div class="flex items-center gap-3">
@@ -101,23 +118,44 @@
             <td class="px-5 py-4 sm:px-6">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 overflow-hidden rounded-full">
-                  <img :src="getPhotoUrl(post.CIInfPer)" @error="handleImageError" />
-                </div>
-              </div>
-            </td>
-            <td class="px-5 py-4 sm:px-6">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 overflow-hidden rounded-full">
                   <img :src="getPhotoUrl2(post.CIInfPer)" @error="handleImageError" />
                 </div>
               </div>
             </td>
             <td class="px-5 py-4 sm:px-6">
-              <button v-if="post.different"
-                class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
+              <div class="flex items-center">
+                <span v-if="post.estaRegistradoHC === null" class="flex items-center gap-1 text-gray-400 text-theme-xs">
+                  <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"></svg>
+                  Verificando...
+                </span>
+
+                <span v-else-if="post.estaRegistradoHC === true"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  Sí
+                </span>
+
+                <span v-else
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  No
+                </span>
+              </div>
+            </td>
+            <td class="px-5 py-4 sm:px-6">
+              <button @click="abrirModalEdicion(post)"
+                class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
                 Actualizar foto
               </button>
-              <span v-else class="text-gray-400 text-xs">Fotos similares</span>
+
             </td>
           </tr>
         </tbody>
@@ -134,20 +172,140 @@
       </button>
     </div>
     &nbsp;&nbsp;&nbsp;&nbsp;
-    <div class="d-flex justify-content-center mb-4" v-if="!this.cargando">
+    <div class="d-flex justify-content-center mb-4" v-if="!cargando">
 
       &nbsp;&nbsp;&nbsp;
       <button class="btn btn-primary text-white" @click="descargarDatosMasiva">
         Descargar en formato ZIP
       </button>
     </div>
+    <!-- Modal de Edición de Usuario -->
+    <Modal v-if="isEditModalOpen" @close="isEditModalOpen = false">
+      <template #body>
+        <div
+          class="relative w-full max-w-[700px] max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white dark:bg-gray-900 shadow-2xl">
+
+          <button @click="isEditModalOpen = false"
+            class="transition-color absolute right-5 top-5 z-999 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.07]">
+            <svg class="fill-current" width="24" height="24" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M6.04289 16.5418C5.65237 16.9323 5.65237 17.5655 6.04289 17.956C6.43342 18.3465 7.06658 18.3465 7.45711 17.956L11.9987 13.4144L16.5408 17.9565C16.9313 18.347 17.5645 18.347 17.955 17.9565C18.3455 17.566 18.3455 16.9328 17.955 16.5423L13.4129 12.0002L17.955 7.45808C18.3455 7.06756 18.3455 6.43439 17.955 6.04387C17.5645 5.65335 16.9313 5.65335 16.5408 6.04387L11.9987 10.586L7.45711 6.04439C7.06658 5.65386 6.43342 5.65386 6.04289 6.04439C5.65237 6.43491 5.65237 7.06808 6.04289 7.4586L10.5845 12.0002L6.04289 16.5418Z" />
+            </svg>
+          </button>
+
+          <div class="px-6 pt-8 lg:px-11 lg:pt-11">
+            <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+              Usuario
+            </h4>
+            <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+              Los datos mostrados son los actuales del usuario registrado en el SIAD. Realice los cambios necesarios.
+            </p>
+          </div>
+
+          <form class="flex flex-col flex-1 overflow-hidden">
+            <div class="px-6 pb-4 overflow-y-auto custom-scrollbar lg:px-11">
+              <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                <div>
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Nombres</label>
+                  <input type="text" v-model="objetoeditar.nombre_us"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white"
+                    disabled />
+                </div>
+
+                <div>
+                  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Correo
+                    Institucional</label>
+                  <input type="text" v-model="objetoeditar.mailInst"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white"
+                    disabled />
+                </div>
+              </div>
+
+
+
+              <div class="file-uploader mt-5 pb-6">
+                <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">Foto</label>
+
+                <div v-if="objetoeditar.CIInfPer" class="mb-4 flex justify-center">
+                  <div class="relative">
+                    <img :src="getPhotoUrl(objetoeditar.CIInfPer)"
+                      class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
+                      @error="handleImageError" />
+                    <span
+                      class="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">SIAD</span>
+                  </div>
+                  &nbsp;&nbsp;&nbsp;
+                  <div class="relative">
+                    <img :src="getPhotoUrl2(objetoeditar.CIInfPer)" loading="lazy"
+                      class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
+                      @error="handleImageError" />
+                    <span
+                      class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">HIKCENTRAL</span>
+                  </div>
+                </div>
+
+
+              </div>
+              <div class="mt-2">
+                <span v-if="cargandoStatus" class="text-xs text-gray-400">Verificando en HikCentral...</span>
+                <span v-else :class="estaRegistrado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                  class="px-2 py-1 rounded-md text-xs font-bold uppercase">
+                  {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3 ...">
+                <button @click="ejecutarComparacion" type="button" :disabled="comparando || !estaRegistrado"
+                  class="flex w-full justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition-all">
+                  {{ comparando ? 'Comparando...' : 'Comparar Fotos' }}
+                </button>
+              </div>
+
+            </div>
+
+            <div
+              class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11">
+              <button @click="isEditModalOpen = false" type="button"
+                class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto">
+                Cerrar
+              </button>
+              <button type="button" @click="registrarEnHikCentral(objetoeditar.CIInfPer)"
+                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
+                Guardar Cambios
+              </button>
+              <!-- Modal de Edición de Usuario 
+              <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>-->
+            </div>
+          </form>
+        </div>
+      </template>
+    </Modal>
   </div>
 </template>
+<script setup>
+import { ref } from 'vue'
+import Modal from '@/components/Modal/Modal.vue'
 
+const isProfileAddressModal = ref(false)
+const isEditModalOpen = ref(false)
+const showPassword = ref(false)
+// Creamos una función para que el bloque de abajo pueda cerrar el modal
+const cerrarModalDesdeAfuera = () => {
+  isProfileAddressModal.value = false
+}
+
+// Exponemos la variable y la función
+defineExpose({
+  isProfileAddressModal,
+  isEditModalOpen,
+  cerrarModalDesdeAfuera
+})
+</script>
 <script>
 import API from "@/assets/js/services/axios";
 import { useRoute } from "vue-router";
 import JSZip from "jszip";
+import Modal from '@/components/Modal/Modal.vue'
 import { saveAs } from "file-saver";
 import debounce from 'lodash.debounce';
 
@@ -158,6 +316,11 @@ export default {
       baseUrl: "/biometrico", // Ajustado para usar la base
       postulacionespr: [],
       filteredpostulaciones: [],
+      objetoeditar: {
+        CIInfPer: 0,
+        nombre_us: "",
+        mailInst: "",
+      },
       searchQuery: "",
       cargando: false,
       currentPage: 1,
@@ -169,7 +332,23 @@ export default {
       selectedCarrera: 'Todos', // Valor inicial para seleccionar todas las carreras
       carrerasList: [], // Lista de carreras únicas para el combobox
       totalEstudiantes: 0,
+      refreshKey: Date.now(),
+      estaRegistrado: false,
+      cargandoStatus: false,
+      comparando: false,
+      syncMode: false,
+      pendientes: [],
+      syncIndex: 0,
+      currentSyncName: '',
+      abortController: null,
     };
+  },
+  computed: {
+    progressSync() {
+      return this.pendientes.length > 0
+        ? Math.round((this.syncIndex / this.pendientes.length) * 100)
+        : 0;
+    }
   },
   created() {
     // Ahora sí puedes usar this.filterAndFetch
@@ -185,25 +364,180 @@ export default {
     this.loadCarrerasList();
   },
   methods: {
+    abrirModalEdicion(user) {
+      // Clonamos el objeto para no modificar la tabla directamente antes de guardar
+      this.objetoeditar = {
+        CIInfPer: user.CIInfPer,
+        nombre_us: user.NombInfPer + ' ' + user.ApellMatInfPer + ' ' + user.ApellInfPer,
+        mailInst: user.mailInst,
+
+      };
+      this.estaRegistrado = false;
+      this.$.setupState.isEditModalOpen = true;
+      this.verificarRegistroHC(user.CIInfPer);
+    },
+    async iniciarSincronizacionMasiva() {
+      if (!confirm("Se buscarán usuarios no registrados y se enviarán a HikCentral. ¿Continuar?")) return;
+
+      this.syncMode = true;
+      this.syncIndex = 0;
+
+      try {
+        // 1. Obtener lista de pendientes desde el nuevo endpoint
+        const { data } = await API.get(`${this.baseUrl}/get-pending-sync-est`, {
+          params: { carrera_name: this.selectedCarrera }
+        });
+
+        this.pendientes = data.pendientes;
+        console.log(this.pendientes);
+        if (this.pendientes.length === 0) {
+          alert("No se encontraron usuarios pendientes de registro.");
+          this.syncMode = false;
+          return;
+        }
+
+        // 2. Procesar uno por uno (Evita 429 y Timeouts)
+        for (const p of this.pendientes) {
+          this.currentSyncName = p.NombInfPer;
+
+          try {
+            // Reutilizamos tu método individual que ya maneja la firma y el envío
+            const res = await API.post(`${this.baseUrl}/sync-hikdoc/${p.CIInfPer}`);
+
+            if (res.data.code === "0" || res.data.msg === "Success") {
+              console.log(`✅ Sincronizado: ${p.CIInfPer}`);
+            }
+          } catch (e) {
+            console.error(`❌ Error en CI ${p.CIInfPer}:`, e.response?.data || e.message);
+          }
+
+          this.syncIndex++;
+          // Pequeño delay opcional para ser aún más "amigables" con la CPU del servidor
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        alert("Sincronización masiva finalizada.");
+        this.getAdministrativosD(this.currentPage, this.searchQuery, this.selectedCarrera); // Refrescar tabla
+
+      } catch (error) {
+        alert("Error al obtener la lista de pendientes.");
+      } finally {
+        this.syncMode = false;
+      }
+    },
+    async verificarRegistroHC(ci) {
+      this.cargandoStatus = true;
+      try {
+        const response = await API.get(`${this.baseUrl}/getperson-es/${ci}?v=${this.refreshKey}`);
+        this.estaRegistrado = response.data.registrado;
+      } catch (error) {
+        this.estaRegistrado = false;
+      } finally {
+        this.cargandoStatus = false;
+      }
+    },
+    // Nuevo método para validar los estados de la tabla actual
+    async verificarRegistrosMasivos() {
+      // Creamos una copia local para evitar problemas si filteredpostulaciones cambia
+      const items = this.filteredpostulaciones;
+
+      for (let post of items) {
+        // Si el usuario cambió de página o filtró de nuevo mientras procesábamos, detenemos este bucle
+        if (this.cargando) break;
+
+        try {
+          // Hacemos las peticiones UNA POR UNA
+          const res = await API.get(`${this.baseUrl}/getperson-es/${post.CIInfPer}`);
+          post.estaRegistradoHC = res.data.registrado;
+        } catch (e) {
+          post.estaRegistradoHC = false;
+        }
+
+        // Opcional: un delay de 50ms para dar respiro al servidor
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    },
+    async registrarEnHikCentral(post) {
+      // Confirmación simple
+      if (!confirm(`¿Deseas registrar a ${post} en HikCentral?`)) return;
+
+      this.cargando = true; // Bloquear UI para evitar clics repetidos
+      try {
+        const response = await API.post(`${this.baseUrl}/sync-hikdoc/${post}`);
+
+        // Si el código que retorna Artemis es "0" es éxito
+        if (response.data.code === "0" || response.data.msg === "Success") {
+          alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
+
+          // Actualizar el estado en la tabla localmente sin recargar
+          post.estaRegistradoHC = true;
+        } else {
+          alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
+        }
+      } catch (error) {
+        console.error("Error al sincronizar:", error);
+        const mensaje = error.response?.data?.details?.msg || "Error desconocido al conectar con el Biométrico";
+        alert(`❌ Error: ${mensaje}`);
+      } finally {
+        this.cargando = false;
+      }
+    },
+    async ejecutarComparacion() {
+      this.comparando = true;
+      try {
+        const ci = this.objetoeditar.CIInfPer;
+        const { data } = await API.get(`${this.baseUrl}/compare-hikdoc/${ci}?v=${this.refreshKey}`);
+
+        if (data.identicas) {
+          // Usar un alert o notificación con el porcentaje
+          alert(`✅ Match: ${data.similitud} de similitud.`);
+        } else {
+          alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+        }
+      } catch (error) {
+        alert("Error en la comparación");
+      } finally {
+        this.comparando = false;
+      }
+    },
+    async ejecutarComparacion() {
+      this.comparando = true;
+      try {
+        const ci = this.objetoeditar.CIInfPer;
+        const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-est/${ci}?v=${this.refreshKey}`);
+
+        if (data.identicas) {
+          // Usar un alert o notificación con el porcentaje
+          alert(`✅ Match: ${data.similitud} de similitud.`);
+        } else {
+          alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+        }
+      } catch (error) {
+        alert("Error en la comparación");
+      } finally {
+        this.comparando = false;
+      }
+    },
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
     getPhotoUrl(ci) {
       const baseURL2 = API.defaults.baseURL;
-      return `${baseURL2}/biometrico/fotografia/${ci}`;
+      return `${baseURL2}/biometrico/fotografia/${ci}?v=${this.refreshKey}`;
     },
     getPhotoUrl2(ci) {
       const baseURL2 = API.defaults.baseURL
-      return `${baseURL2}/biometrico/fotografiaHK/${ci}`;
+      return `${baseURL2}/biometrico/gethick/${ci}?v=${this.refreshKey}`;
     },
     async loadCarrerasList() {
-      this.cargando = true;
       try {
         const response = await API.get(`${this.baseUrl}/carrerasList`);
 
-        this.carrerasList = response.data?.data || []
+        // Validamos que venga la data y asignamos el array de objetos
+        this.carrerasList = response.data?.data || [];
 
       } catch (error) {
         console.error("❌ Error al obtener carreras:", error);
         this.carrerasList = [];
+        // Opcional: Notificación al usuario (Toast/Alert)
       }
     },
     async isDifente(post) {
@@ -258,8 +592,10 @@ export default {
         };
 
         // Petición al backend CON filtros incluidos
-        const response = await API.get(`${this.baseUrl}/estudiantesfoto`, { params });
-
+        const response = await API.get(`${this.baseUrl}/estudiantesfoto`, {
+          params
+        });
+        console.log(response);
         const data = response.data?.data || [];
         const pagination = response.data?.pagination || {};
 
@@ -272,7 +608,7 @@ export default {
         //await this.procesarFotosConLimite(3);
 
         // 3. Actualizar la tabla con los datos filtrados y paginados
-
+        await this.verificarRegistrosMasivos();
 
       } catch (error) {
         console.warn("⚠️ Error al obtener datos:", error?.response?.data || error);
