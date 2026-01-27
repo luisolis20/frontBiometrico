@@ -77,23 +77,27 @@
                                 </p>
                             </div>
 
-                           
+
 
                             <div>
                                 <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Tipo de personal
                                 </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90" v-if="docenteData.TipoInfPer === 'D'">
+                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
+                                    v-if="docenteData.TipoInfPer === 'D'">
                                     Docente
                                 </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90" v-if="docenteData.TipoInfPer === 'A'">
+                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
+                                    v-if="docenteData.TipoInfPer === 'A'">
                                     Administrativo
                                 </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90" v-if="docenteData.TipoInfPer === 'T'">
+                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
+                                    v-if="docenteData.TipoInfPer === 'T'">
                                     Trabajador
                                 </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90" v-if="docenteData.TipoInfPer === 'TDO'">
+                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
+                                    v-if="docenteData.TipoInfPer === 'TDO'">
                                     Tecnico Docente
-                                    </p>
+                                </p>
 
                             </div>
                         </div>
@@ -147,7 +151,7 @@
                         </div>
 
                         <div class="flex items-center gap-3 ...">
-                            <button @click="ejecutarComparacion" type="button" :disabled="comparando || !estaRegistrado"
+                            <button @click="ejecutarComparacion(docenteData.CIInfPer)" type="button" :disabled="comparando || !estaRegistrado"
                                 class="flex w-full justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition-all">
                                 {{ comparando ? 'Comparando...' : 'Comparar Fotos' }}
                             </button>
@@ -155,22 +159,22 @@
 
                     </div>
                     <div
-              class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11">
-              
-              <button type="button" @click="registrarEnHikCentral(docenteData.CIInfPer)"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
-                Guardar Cambios
-              </button>
-              <!-- Modal de Edición de Usuario 
+                        class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11">
+
+                        <button type="button" @click="registrarEnHikCentral(docenteData.CIInfPer)"
+                            class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
+                            Guardar Cambios
+                        </button>
+                        <!-- Modal de Edición de Usuario 
               <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>-->
-            </div>
+                    </div>
 
 
                 </div>
             </div>
         </div>
         <div v-else>
-            <span  class="text-gray-500 dark:text-gray-400">No se ha encontrado ningún registro.</span>
+            <span class="text-gray-500 dark:text-gray-400">No se ha encontrado ningún registro.</span>
         </div>
 
     </div>
@@ -259,17 +263,17 @@ export default {
                 this.estaRegistrado = false;
             }
         },
-        async ejecutarComparacion() {
-           this.comparando = true;
+        async ejecutarComparacion(ci) {
+            this.comparando = true;
             try {
-                const ci = this.objetoeditar.CIInfPer;
-                const { data } = await API.get(`${this.baseUrl}/compare-hikdoc/${ci}?v=${this.refreshKey}`);
+                
+                const { data } = await API.get(`${this.baseUrl}/compare-hikdoc/${ci}`);
 
                 if (data.identicas) {
-                // Usar un alert o notificación con el porcentaje
-                alert(`✅ Match: ${data.similitud} de similitud.`);
+                    // Usar un alert o notificación con el porcentaje
+                    alert(`✅ Match: ${data.similitud} de similitud.`);
                 } else {
-                alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+                    alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
                 }
             } catch (error) {
                 alert("Error en la comparación");
@@ -278,8 +282,8 @@ export default {
             }
         },
         handleImageError(event) {
-           event.target.src =
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/480px-User_icon_2.svg.png";
+            event.target.src =
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/480px-User_icon_2.svg.png";
         },
         async registrarEnHikCentral(post) {
             // Confirmación simple
@@ -306,24 +310,7 @@ export default {
                 this.cargando = false;
             }
         },
-        async ejecutarComparacion() {
-            this.comparando = true;
-            try {
-                const ci = this.objetoeditar.CIInfPer;
-                const { data } = await API.get(`${this.baseUrl}/compare-hikdoc/${ci}?v=${this.refreshKey}`);
-
-                if (data.identicas) {
-                    // Usar un alert o notificación con el porcentaje
-                    alert(`✅ Match: ${data.similitud} de similitud.`);
-                } else {
-                    alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
-                }
-            } catch (error) {
-                alert("Error en la comparación");
-            } finally {
-                this.comparando = false;
-            }
-        },
+        
     }
 };
 </script>
