@@ -188,6 +188,14 @@ const menuGroups = [
           { name: "Docentes", path: "/docentes_pictures", pro: false },
         ],
       },
+      {
+        icon: UserCircleIcon,
+        name: "Registro Individual",
+        subItems: [
+          { name: "Estudiantes", path: "/estudiantes_registro", pro: false },
+          { name: "Personal UTLVTE", path: "/docentes_registro", pro: false },
+        ],
+      },
       
     ],
   },

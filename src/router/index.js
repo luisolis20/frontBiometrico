@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Estudiantes_FotoViews from '../views/FotosViews/Estudiantes_FotoViews.vue'
 import Docentes_FotoViews from '../views/FotosViews/Docentes_FotoViews.vue'
+import Registro_IndvDoc from '../views/FotosViews/Registro_IndvDoc.vue'
 import Login from '../views/Login/Signin.vue'
 
 const routes = [
@@ -24,6 +25,11 @@ const routes = [
     path: '/docentes_pictures',
     name: 'Docentes',
     component: Docentes_FotoViews
+  },
+  {
+    path: '/docentes_registro',
+    name: 'DocenteR',
+    component: Registro_IndvDoc
   },
   {
     path: '/about',

@@ -540,41 +540,7 @@ export default {
         // Opcional: Notificación al usuario (Toast/Alert)
       }
     },
-    async isDifente(post) {
-      try {
-        const resp = await API.get(`/biometrico/comparar-foto32/${post.CIInfPer}`);
-        return resp.data.different === true;
-      } catch (error) {
-        console.warn("Error comparando fotos:", error);
-        return true; // ante error considerar diferente
-
-      }
-    },
-    async procesarFotosConLimite(concurrency = 3) {
-      let index = 0;
-
-      const ejecutarLote = async () => {
-        if (index >= this.filteredpostulaciones.length) return;
-
-        const start = index;
-        const end = Math.min(index + concurrency, this.filteredpostulaciones.length);
-        index = end;
-
-        const slice = this.filteredpostulaciones.slice(start, end);
-
-        await Promise.all(
-          slice.map(async (post) => {
-            post.different = await this.isDifente(post);
-          })
-        );
-
-        await ejecutarLote();
-      };
-
-      await ejecutarLote();
-    },
-
-
+    
     // 🆕 Maneja el error de carga de imagen (ej: si el CI no tiene foto a pesar del filtro)
     handleImageError(event) {
       // Reemplaza la imagen con el ícono de usuario por defecto
