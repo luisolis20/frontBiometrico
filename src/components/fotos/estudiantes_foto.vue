@@ -26,7 +26,7 @@
       <select v-model="selectedCarrera" @change="debouncedFilter"
         class="appearance-none h-11 w-full rounded-lg border border-gray-200 bg-white py-2.5 px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
         <option value="Todos">Todas las Carreras</option>
-        <option v-for="carrera in carrerasList" :key="carrera.id" :value="carrera.nombre">
+        <option v-for="carrera in carrerasList" :key="carrera.id" :value="carrera.id">
           {{ carrera.nombre }}
         </option>
       </select>
@@ -428,7 +428,7 @@ export default {
     async verificarRegistroHC(ci) {
       this.cargandoStatus = true;
       try {
-        const response = await API.get(`${this.baseUrl}/getperson-es/${ci}?v=${this.refreshKey}`);
+        const response = await API.get(`${this.baseUrl}/getperson-est/${ci}?v=${this.refreshKey}`);
         this.estaRegistrado = response.data.registrado;
       } catch (error) {
         this.estaRegistrado = false;
@@ -447,7 +447,7 @@ export default {
 
         try {
           // Hacemos las peticiones UNA POR UNA
-          const res = await API.get(`${this.baseUrl}/getperson-es/${post.CIInfPer}`);
+          const res = await API.get(`${this.baseUrl}/getperson-est/${post.CIInfPer}`);
           post.estaRegistradoHC = res.data.registrado;
         } catch (e) {
           post.estaRegistradoHC = false;
@@ -482,24 +482,7 @@ export default {
         this.cargando = false;
       }
     },
-    async ejecutarComparacion() {
-      this.comparando = true;
-      try {
-        const ci = this.objetoeditar.CIInfPer;
-        const { data } = await API.get(`${this.baseUrl}/compare-hikdoc/${ci}?v=${this.refreshKey}`);
-
-        if (data.identicas) {
-          // Usar un alert o notificación con el porcentaje
-          alert(`✅ Match: ${data.similitud} de similitud.`);
-        } else {
-          alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
-        }
-      } catch (error) {
-        alert("Error en la comparación");
-      } finally {
-        this.comparando = false;
-      }
-    },
+    
     async ejecutarComparacion() {
       this.comparando = true;
       try {
@@ -533,7 +516,6 @@ export default {
 
         // Validamos que venga la data y asignamos el array de objetos
         this.carrerasList = response.data?.data || [];
-
       } catch (error) {
         console.error("❌ Error al obtener carreras:", error);
         this.carrerasList = [];
@@ -561,7 +543,6 @@ export default {
         const response = await API.get(`${this.baseUrl}/estudiantesfoto`, {
           params
         });
-        console.log(response);
         const data = response.data?.data || [];
         const pagination = response.data?.pagination || {};
 
