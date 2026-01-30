@@ -443,11 +443,12 @@ export default {
 
       for (let post of items) {
         // Si el usuario cambió de página o filtró de nuevo mientras procesábamos, detenemos este bucle
-        if (this.cargando) break;
+        if (!this.filteredpostulaciones.length) break;
 
         try {
           // Hacemos las peticiones UNA POR UNA
           const res = await API.get(`${this.baseUrl}/getperson-est/${post.CIInfPer}`);
+          
           post.estaRegistradoHC = res.data.registrado;
         } catch (e) {
           post.estaRegistradoHC = false;
@@ -553,7 +554,7 @@ export default {
 
         // 2. Procesar la diferencia de fotos
         //await this.procesarFotosConLimite(3);
-
+        this.cargando = false;
         // 3. Actualizar la tabla con los datos filtrados y paginados
         await this.verificarRegistrosMasivos();
 
@@ -562,6 +563,7 @@ export default {
         this.filteredpostulaciones = [];
         this.currentPage = 1;
         this.lastPage = 1;
+        this.cargando = false;
       } finally {
         this.cargando = false;
       }

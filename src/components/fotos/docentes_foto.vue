@@ -486,6 +486,7 @@ export default {
           // Hacemos las peticiones UNA POR UNA
           const res = await API.get(`${this.baseUrl}/getperson/${post.CIInfPer}`);
           post.estaRegistradoHC = res.data.registrado;
+          
         } catch (e) {
           post.estaRegistradoHC = false;
         }
