@@ -300,6 +300,7 @@ export default {
                     // Actualizar el estado en la tabla localmente sin recargar
                     post.estaRegistradoHC = true;
                     this.searchQuery = '';
+                    this.estencontrado = true;
                 } else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
                 }
@@ -308,6 +309,7 @@ export default {
                 this.estencontrado = false;
             } finally {
                 this.cargando = false;
+                this.estencontrado = true;
                 this.searchQuery = '';
             }
         },
