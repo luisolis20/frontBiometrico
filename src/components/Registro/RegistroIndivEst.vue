@@ -19,6 +19,19 @@
 
         </form>
         <br>
+        <div class="mt-4 flex flex-wrap gap-4 items-center">
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Periodo Lectivo:</span>
+            <div v-for="periodo in periodosList" :key="periodo.idper" class="flex items-center">
+                <input type="radio" :id="'periodo-' + periodo.idper" :value="periodo.idper"
+                    v-model="periodoSeleccionado"
+                    class="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                <label :for="'periodo-' + periodo.idper"
+                    class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                    {{ periodo.DescPerLec }}
+                </label>
+            </div>
+        </div>
+        <br>
         <div v-if="estudianteData && estencontrado">
             <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
@@ -85,7 +98,7 @@
                                 <p class="text-sm font-medium text-gray-800 dark:text-white/90">
                                     {{ estudianteData.NombCarr }}
                                 </p>
-                               
+
 
                             </div>
                         </div>
@@ -101,7 +114,8 @@
                             Información HikCentral
                         </h4>
                         <p class="text-[11px] text-gray-400 italic">
-                            Nota: Los datos obtenidos aquí son los datos que el estudiante tiene registrados en HikCentral.
+                            Nota: Los datos obtenidos aquí son los datos que el estudiante tiene registrados en
+                            HikCentral.
                             Luego que verifiques la información debes dar clic en "Sincronizar HK"
                         </p>
                         <br>
@@ -118,7 +132,7 @@
                                 </div>
                                 &nbsp;&nbsp;&nbsp;
                                 <div class="relative">
-                                    <img :src="getPhotoUrl2(estudianteData.CIInfPer)" loading="lazy"
+                                    <img :src="getPhotoUrl2(estudianteData.CIInfPer)"
                                         class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
                                         @error="handleImageError" />
                                     <span
@@ -137,24 +151,51 @@
                                 {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
                             </span>
                         </div>
+                        <div v-if="comparando" class="text-xs text-blue-500 animate-pulse">
+                            Calculando similitud facial...
+                        </div>
+                        <div v-if="comparacionResultado" class="mt-2">
+                            <span :class="comparacionResultado.identicas ? 'text-green-600' : 'text-red-600'"
+                                class="text-sm font-bold">
+                                Similitud: {{ comparacionResultado.similitud }}%
+                                ({{ comparacionResultado.identicas ? 'Coincide' : 'No coincide' }})
+                            </span>
+                        </div>
 
-                        <div class="flex items-center gap-3 ...">
-                            <button @click="ejecutarComparacion(estudianteData.CIInfPer)" type="button" :disabled="comparando || !estaRegistrado"
+                        <!-- <div class="flex items-center gap-3 ...">
+                            <button @click="ejecutarComparacion(estudianteData.CIInfPer)" type="button"
+                                :disabled="comparando || !estaRegistrado"
                                 class="flex w-full justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition-all">
                                 {{ comparando ? 'Comparando...' : 'Comparar Fotos' }}
                             </button>
-                        </div>
+                        </div>-->
 
                     </div>
                     <div
                         class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11">
 
-                        <button type="button" @click="registrarEnHikCentral(estudianteData.CIInfPer)"
+                        <button v-if="!estaRegistrado && !cargandoStatus" type="button"
+                            @click="registrarEnHikCentral(estudianteData.CIInfPer)"
                             class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
                             Enviar Foto a HIK
                         </button>
-                        <!-- Modal de Edición de Usuario 
-              <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>-->
+
+                        <button v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas"
+                            type="button" @click="UpdateEnHikCentral(estudianteData.CIInfPer)"
+                            class="flex w-full justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 sm:w-auto shadow-lg transition-all">
+                            Actualizar Foto en HIK (Baja Similitud)
+                        </button>
+
+                        <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas"
+                            class="flex items-center gap-2 text-green-600 font-medium text-sm">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Información Sincronizada y Validada
+                        </div>
+
                     </div>
 
 
@@ -162,10 +203,12 @@
             </div>
         </div>
         <div v-if="!estencontrado">
-            <span class="text-gray-500 dark:text-red-400">No se ha encontrado ningún registro. Verifique si el estudiante posee una foto</span>
+            <span class="text-gray-500 dark:text-red-400">No se ha encontrado ningún registro. Verifique si el
+                estudiante posee una foto o se encuentra en el periodo de registro</span>
         </div>
         <div v-else>
-            <span class="text-gray-500 dark:text-gray-400">Ingrese la cédula de un estudiante para ver su información y cargarla en HikCentral.</span>
+            <span class="text-gray-500 dark:text-gray-400">Ingrese la cédula de un estudiante para ver su información y
+                cargarla en HikCentral.</span>
         </div>
 
     </div>
@@ -190,7 +233,14 @@ export default {
             syncMode: false,
             syncIndex: 0,
             currentSyncName: '',
+            periodosList: [],        // Para guardar los 2 periodos del backend
+            periodoSeleccionado: null,
+            comparacionResultado: null,
+            personIdHC: null,
         };
+    },
+    mounted() {
+        this.cargarPeriodos();
     },
     methods: {
         onlyNumbers(event) {
@@ -205,34 +255,56 @@ export default {
             return `${baseURL2}/biometrico/fotografia/${ci}`;
         },
         getPhotoUrl2(ci) {
-            const baseURL2 = API.defaults.baseURL
-            return `${baseURL2}/biometrico/gethick/${ci}`;
+            const baseURL2 = API.defaults.baseURL;
+            // Añadimos un timestamp para evitar que el navegador use la versión cacheada
+            return `${baseURL2}/biometrico/gethick/${ci}?t=${new Date().getTime()}`;
+        },
+        // 1. Cargar los 2 periodos (activo y anterior)
+        async cargarPeriodos() {
+            try {
+                const response = await API.get(`${this.baseUrl}/get-periodos-rec`);
+                if (response.data.status) {
+                    this.periodosList = response.data.data;
+                    // Seleccionar automáticamente el primero (el activo)
+                    if (this.periodosList.length > 0) {
+                        this.periodoSeleccionado = this.periodosList[0].idper;
+                    }
+                }
+            } catch (error) {
+                console.error("Error al cargar periodos:", error);
+            }
         },
         async buscarEstudiante() {
             if (this.searchQuery.length < 10) return;
+            if (!this.periodoSeleccionado) {
+                alert("Por favor seleccione un periodo");
+                return;
+            }
 
             this.cargando = true;
-            this.estudianteData = null; // Limpiar previo
+            this.estudianteData = null;
+            this.comparacionResultado = null;
 
             try {
-                // Llamada al método individual con caché que creamos en Laravel
-                const response = await API.get(`/biometrico/getindivEst/${this.searchQuery}`);
-                if (response.data.length === 0) {
+                // Enviamos el periodoSeleccionado como query parameter o en la URL
+                // Ejemplo usando query param: ?periodo=126
+                const response = await API.get(`/biometrico/getindivEst/${this.searchQuery}`, {
+                    params: { idper: this.periodoSeleccionado }
+                });
+
+                if (!response.data || response.data.length === 0) {
                     this.estencontrado = false;
-                    return;
-                }else{
+                } else {
                     this.estencontrado = true;
                     this.estudianteData = response.data;
                     await this.verificarRegistroHC(this.estudianteData.CIInfPer);
+                    if (this.estaRegistrado) {
+                        await this.ejecutarComparacion(this.estudianteData.CIInfPer);
+                    }
                 }
-
-               
-
             } catch (error) {
-                console.error("❌ Error al buscar estudiante:", error);
-                this.estudianteData = null;
+                console.error("❌ Error al buscar:", error);
                 this.estencontrado = false;
-                // Aquí podrías disparar una alerta de "No encontrado"
             } finally {
                 this.cargando = false;
             }
@@ -241,6 +313,7 @@ export default {
             this.cargandoStatus = true;
             try {
                 const response = await API.get(`${this.baseUrl}/getperson-est/${ci}`);
+                this.personIdHC = response.data.personId;
                 this.estaRegistrado = response.data.registrado;
             } catch (error) {
                 this.estaRegistrado = false;
@@ -251,14 +324,14 @@ export default {
         async ejecutarComparacion(ci) {
             this.comparando = true;
             try {
-                
-                const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-est/${ci}`);
 
+                const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-est/${ci}`);
+                this.comparacionResultado = data;
                 if (data.identicas) {
                     // Usar un alert o notificación con el porcentaje
-                    alert(`✅ Match: ${data.similitud} de similitud.`);
+                    console.log(`✅ Match: ${data.similitud}%`);
                 } else {
-                    alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+                    console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
                 }
             } catch (error) {
                 alert("Error en la comparación");
@@ -276,16 +349,19 @@ export default {
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
             try {
-                const response = await API.post(`${this.baseUrl}/sync-hikdoc/${post}`);
+                const response = await API.post(`${this.baseUrl}/sync-hikdoc/${post}`, {}, {
+                    params: { idper: this.periodoSeleccionado }
+                });
                 console.log("Respuesta de sincronización:", response);
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
                     alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
 
                     // Actualizar el estado en la tabla localmente sin recargar
-                    post.estaRegistradoHC = true;
-                    this.searchQuery = '';
-                    this.estencontrado = true;
+                    await this.verificarRegistroHC(this.estudianteData.CIInfPer);
+                    if (this.estaRegistrado) {
+                        await this.ejecutarComparacion(this.estudianteData.CIInfPer);
+                    }
                 } else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
                 }
@@ -301,7 +377,43 @@ export default {
                 this.estencontrado = true;
             }
         },
-        
+        async UpdateEnHikCentral(post) {
+            // Confirmación simple
+            if (!confirm(`¿Deseas registrar a ${post} en HikCentral?`)) return;
+
+            this.cargando = true; // Bloquear UI para evitar clics repetidos
+            try {
+                const response = await API.post(`${this.baseUrl}/sync-hikdoc-update/${post}`, {
+                    personIdHC: this.personIdHC // <--- Enviamos el UUID en el body
+                }, {
+                    params: { idper: this.periodoSeleccionado }
+                });
+                console.log("Respuesta de sincronización:", response);
+                // Si el código que retorna Artemis es "0" es éxito
+                if (response.data.code === "0" || response.data.msg === "Success") {
+                    alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
+
+                    // Actualizar el estado en la tabla localmente sin recargar
+                    await this.verificarRegistroHC(this.estudianteData.CIInfPer);
+                    if (this.estaRegistrado) {
+                        await this.ejecutarComparacion(this.estudianteData.CIInfPer);
+                    }
+                } else {
+                    alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
+                }
+            } catch (error) {
+                /*console.error("Error al sincronizar:", error);
+                const mensaje = error.response?.data?.details?.msg || "Error desconocido al conectar con el Biométrico";
+                alert(`❌ Error: ${mensaje}`);*/
+                this.searchQuery = '';
+                this.estencontrado = false;
+            } finally {
+                this.cargando = false;
+                this.searchQuery = '';
+                this.estencontrado = true;
+            }
+        },
+
     }
 };
 </script>
