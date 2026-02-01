@@ -252,7 +252,7 @@ export default {
         // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
         getPhotoUrl(ci) {
             const baseURL2 = API.defaults.baseURL;
-            return `${baseURL2}/biometrico/fotografia/${ci}`;
+            return `${baseURL2}/biometrico/fotografia/${ci}?t=${new Date().getTime()}`;
         },
         getPhotoUrl2(ci) {
             const baseURL2 = API.defaults.baseURL;
@@ -369,6 +369,12 @@ export default {
                     this.estaRegistrado = true;
                     this.searchQuery = '';
                     this.estencontrado = true;
+                }else if (response.data.code === "128") {
+                    console.warn("La foto de: " + this.estudianteData.CIInfPer + " no es compatible con HikCentral.");
+                    alert("La foto de: " + this.estudianteData.CIInfPer + " no es compatible con HikCentral.");    
+                    this.searchQuery = '';
+                    this.estencontrado = false;
+                    this.estaRegistrado = false;
                 }
                 else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
@@ -403,13 +409,19 @@ export default {
                 console.log("Respuesta de sincronización:", response);
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
-                    alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
+                    alert(`✅ Actualizado con éxito. ID en HC: ${response.data.data}`);
 
                     // Actualizar el estado en la tabla localmente sin recargar
                     await this.verificarRegistroHC(this.estudianteData.CIInfPer);
                     if (this.estaRegistrado) {
                         await this.ejecutarComparacion(this.estudianteData.CIInfPer);
                     }
+                }else if (response.data.code === "128") {
+                    console.warn("La foto de: " + this.estudianteData.CIInfPer + " no es compatible con HikCentral.");
+                    alert("La foto de: " + this.estudianteData.CIInfPer + " no es compatible con HikCentral.");    
+                    this.searchQuery = '';
+                    this.estencontrado = false;
+                    this.estaRegistrado = false;
                 } else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
                 }

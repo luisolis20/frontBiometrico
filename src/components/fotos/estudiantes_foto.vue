@@ -150,13 +150,15 @@
                 </span>
               </div>
             </td>
+            <!-- Modal de Edición de Usuario 
+              <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>
             <td class="px-5 py-4 sm:px-6">
               <button @click="abrirModalEdicion(post)"
                 class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-3 rounded-lg text-xs transition duration-150 ease-in-out shadow-md">
                 Actualizar foto
               </button>
 
-            </td>
+            </td>-->
           </tr>
         </tbody>
       </table>
@@ -406,6 +408,10 @@ export default {
 
             if (res.data.code === "0" || res.data.msg === "Success") {
               console.log(`✅ Sincronizado: ${p.CIInfPer}`);
+            }else if(res.data.code === "131"){
+              console.warn(`⚠️ Ya registrado: ${p.CIInfPer}`);
+            }else if(res.data.code === "128"){
+              console.warn(`La foto de: ${p.CIInfPer} no es compatible con HikCentral.`);
             }
           } catch (e) {
             console.error(`❌ Error en CI ${p.CIInfPer}:`, e.response?.data || e.message);

@@ -246,7 +246,7 @@ export default {
         // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
         getPhotoUrl(ci) {
             const baseURL2 = API.defaults.baseURL;
-            return `${baseURL2}/biometrico/fotografiadoc/${ci}`;
+            return `${baseURL2}/biometrico/fotografiadoc/${ci}?t=${new Date().getTime()}`;
         },
         getPhotoUrl2(ci) {
             const baseURL2 = API.defaults.baseURL
@@ -342,6 +342,12 @@ export default {
                     this.estaRegistrado = true;
                     this.searchQuery = '';
                     this.estencontrado = true;
+                } else if (response.data.code === "128") {
+                    console.warn("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");
+                    alert("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");    
+                    this.searchQuery = '';
+                    this.estencontrado = false;
+                    this.estaRegistrado = false;
                 }
                 else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
@@ -378,6 +384,12 @@ export default {
                     if (this.estaRegistrado) {
                         await this.ejecutarComparacion(this.docenteData.CIInfPer);
                     }
+                }else if (response.data.code === "128") {
+                    console.warn("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");
+                    alert("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");    
+                    this.searchQuery = '';
+                    this.estencontrado = false;
+                    this.estaRegistrado = false;
                 } else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
                 }
