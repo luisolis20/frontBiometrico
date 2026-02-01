@@ -42,7 +42,7 @@
                         <div class="order-3 xl:order-2">
                             <h4
                                 class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                                {{ estudianteData.NombInfPer + " " + estudianteData.ApellInfPer }}
+                                {{ estudianteData.NombInfPer + " " + estudianteData.ApellInfPer + " " + estudianteData.ApellMatInfPer }}
                             </h4>
                             <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ estudianteData.CIInfPer }}</p>
@@ -315,6 +315,7 @@ export default {
                 const response = await API.get(`${this.baseUrl}/getperson-est/${ci}`);
                 this.personIdHC = response.data.personId;
                 this.estaRegistrado = response.data.registrado;
+                console.log("PersonaID:", this.personIdHC);
             } catch (error) {
                 this.estaRegistrado = false;
             } finally {
@@ -349,7 +350,7 @@ export default {
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
             try {
-                const response = await API.post(`${this.baseUrl}/sync-hikdoc/${post}`, {}, {
+                const response = await API.post(`${this.baseUrl}/sync-hikdoc-est-id/${post}`, {}, {
                     params: { idper: this.periodoSeleccionado }
                 });
                 console.log("Respuesta de sincronización:", response);
@@ -362,7 +363,14 @@ export default {
                     if (this.estaRegistrado) {
                         await this.ejecutarComparacion(this.estudianteData.CIInfPer);
                     }
-                } else {
+                } else if (response.data.code === "131") {
+                    console.warn("⚠️ Usuario ya registrado en HikCentral.");
+                    alert(`⚠️ Usuario ya registrado en HikCentral.`);
+                    this.estaRegistrado = true;
+                    this.searchQuery = '';
+                    this.estencontrado = true;
+                }
+                else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
                 }
             } catch (error) {
@@ -379,12 +387,16 @@ export default {
         },
         async UpdateEnHikCentral(post) {
             // Confirmación simple
-            if (!confirm(`¿Deseas registrar a ${post} en HikCentral?`)) return;
+            if (!this.personIdHC) {
+                alert("❌ No se puede actualizar: No se encontró el PersonId de HikCentral. Verifique el estado primero.");
+                return;
+            }
+            if (!confirm(`¿Deseas actualizar a ${post} en HikCentral?`)) return;
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
             try {
                 const response = await API.post(`${this.baseUrl}/sync-hikdoc-update/${post}`, {
-                    personIdHC: this.personIdHC // <--- Enviamos el UUID en el body
+                    personaId: this.personIdHC // <--- Enviamos el UUID en el body
                 }, {
                     params: { idper: this.periodoSeleccionado }
                 });

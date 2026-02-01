@@ -29,15 +29,20 @@
                         <div class="order-3 xl:order-2">
                             <h4
                                 class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                                {{ docenteData.NombInfPer + " " + docenteData.ApellInfPer + " " + docenteData.ApellMatInfPer }}
+                                {{ docenteData.NombInfPer + " " + docenteData.ApellInfPer + " " +
+                                    docenteData.ApellMatInfPer }}
                             </h4>
                             <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ docenteData.CIInfPer }}</p>
                                 <div class="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400" v-if="docenteData.TipoInfPer === 'D'">Docente</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400" v-if="docenteData.TipoInfPer === 'A'">Administrativo</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400" v-if="docenteData.TipoInfPer === 'T'">Trabajador</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400" v-if="docenteData.TipoInfPer === 'TDO'">Tecnico Docente</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400"
+                                    v-if="docenteData.TipoInfPer === 'D'">Docente</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400"
+                                    v-if="docenteData.TipoInfPer === 'A'">Administrativo</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400"
+                                    v-if="docenteData.TipoInfPer === 'T'">Trabajador</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400"
+                                    v-if="docenteData.TipoInfPer === 'TDO'">Tecnico Docente</p>
                             </div>
                         </div>
 
@@ -152,22 +157,42 @@
                                 {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
                             </span>
                         </div>
-
-                        <div class="flex items-center gap-3 ...">
-                            <button @click="ejecutarComparacion(docenteData.CIInfPer)" type="button" :disabled="comparando || !estaRegistrado"
-                                class="flex w-full justify-center rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:bg-gray-400 shadow-lg transition-all">
-                                {{ comparando ? 'Comparando...' : 'Comparar Fotos' }}
-                            </button>
+                        <div v-if="comparando" class="text-xs text-blue-500 animate-pulse">
+                            Calculando similitud facial...
+                        </div>
+                        <div v-if="comparacionResultado" class="mt-2">
+                            <span :class="comparacionResultado.identicas ? 'text-green-600' : 'text-red-600'"
+                                class="text-sm font-bold">
+                                Similitud: {{ comparacionResultado.similitud }}%
+                                ({{ comparacionResultado.identicas ? 'Coincide' : 'No coincide' }})
+                            </span>
                         </div>
 
                     </div>
                     <div
                         class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11">
 
-                        <button type="button" @click="registrarEnHikCentral(docenteData.CIInfPer)"
+                        <button v-if="!estaRegistrado && !cargandoStatus" type="button"
+                            @click="registrarEnHikCentral(docenteData.CIInfPer)"
                             class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
                             Enviar Foto a HIK
                         </button>
+
+                        <button v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas"
+                            type="button" @click="UpdateEnHikCentral(docenteData.CIInfPer)"
+                            class="flex w-full justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 sm:w-auto shadow-lg transition-all">
+                            Actualizar Foto en HIK (Baja Similitud)
+                        </button>
+
+                        <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas"
+                            class="flex items-center gap-2 text-green-600 font-medium text-sm">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Información Sincronizada y Validada
+                        </div>
                         <!-- Modal de Edición de Usuario 
               <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>-->
                     </div>
@@ -177,10 +202,12 @@
             </div>
         </div>
         <div v-if="!estencontrado">
-            <span class="text-gray-500 danger:text-gray-400">No se ha encontrado ningún registro. Verifique si el docente posee una foto o está habilitado</span>
+            <span class="text-gray-500 danger:text-gray-400">No se ha encontrado ningún registro. Verifique si el
+                docente posee una foto o está habilitado</span>
         </div>
         <div v-else>
-            <span class="text-gray-500 danger:text-gray-400">Ingrese la cédula de un docente para ver su información y cargarla en HikCentral.</span>
+            <span class="text-gray-500 danger:text-gray-400">Ingrese la cédula de un docente para ver su información y
+                cargarla en HikCentral.</span>
         </div>
 
     </div>
@@ -205,6 +232,8 @@ export default {
             syncMode: false,
             syncIndex: 0,
             currentSyncName: '',
+            comparacionResultado: null,
+            personIdHC: null,
         };
     },
     methods: {
@@ -221,32 +250,33 @@ export default {
         },
         getPhotoUrl2(ci) {
             const baseURL2 = API.defaults.baseURL
-            return `${baseURL2}/biometrico/gethick/${ci}`;
+            return `${baseURL2}/biometrico/gethick/${ci}?t=${new Date().getTime()}`;
         },
         async buscarDocente() {
             if (this.searchQuery.length < 10) return;
 
             this.cargando = true;
-            this.docenteData = null; // Limpiar previo
+            this.docenteData = null;
+             this.comparacionResultado = null; // Limpiar previo
 
             try {
                 // Llamada al método individual con caché que creamos en Laravel
                 const response = await API.get(`/biometrico/getindivDoc/${this.searchQuery}`);
-                if (response.data.length === 0) {
+                if (!response.data || response.data.length === 0) {
                     this.estencontrado = false;
-                    return;
-                }else{
+                } else {
                     this.estencontrado = true;
                     this.docenteData = response.data;
                     await this.verificarRegistroHC(this.docenteData.CIInfPer);
+                    if (this.estaRegistrado) {
+                        await this.ejecutarComparacion(this.docenteData.CIInfPer);
+                    }
                 }
-                
 
-            } catch (error) {
-                console.error("❌ Error al buscar docente:", error);
-                this.docenteData = null;
+
+            }catch (error) {
+                console.error("❌ Error al buscar:", error);
                 this.estencontrado = false;
-                // Aquí podrías disparar una alerta de "No encontrado"
             } finally {
                 this.cargando = false;
             }
@@ -255,25 +285,28 @@ export default {
             this.cargandoStatus = true;
             try {
                 const response = await API.get(`${this.baseUrl}/getperson/${ci}`);
+                 this.personIdHC = response.data.personId;
                 this.estaRegistrado = response.data.registrado;
+                console.log("PersonaID:", this.personIdHC);
             } catch (error) {
                 this.estaRegistrado = false;
             } finally {
                 this.cargandoStatus = false;
             }
         },
-       
+
         async ejecutarComparacion(ci) {
             this.comparando = true;
             try {
-                
+
                 const { data } = await API.get(`${this.baseUrl}/compare-hikdoc/${ci}`);
 
+               this.comparacionResultado = data;
                 if (data.identicas) {
                     // Usar un alert o notificación con el porcentaje
-                    alert(`✅ Match: ${data.similitud} de similitud.`);
+                    console.log(`✅ Match: ${data.similitud}%`);
                 } else {
-                    alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+                    console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
                 }
             } catch (error) {
                 alert("Error en la comparación");
@@ -293,27 +326,74 @@ export default {
             try {
                 const response = await API.post(`${this.baseUrl}/sync-hikcentral/${post}`);
 
+                console.log("Respuesta de sincronización:", response);
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
                     alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
 
                     // Actualizar el estado en la tabla localmente sin recargar
-                    post.estaRegistradoHC = true;
+                    await this.verificarRegistroHC(this.docenteData.CIInfPer);
+                    if (this.estaRegistrado) {
+                        await this.ejecutarComparacion(this.docenteData.CIInfPer);
+                    }
+                } else if (response.data.code === "131") {
+                    console.warn("⚠️ Usuario ya registrado en HikCentral.");
+                    alert(`⚠️ Usuario ya registrado en HikCentral.`);
+                    this.estaRegistrado = true;
                     this.searchQuery = '';
                     this.estencontrado = true;
-                } else {
+                }
+                else {
                     alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
                 }
             } catch (error) {
                 this.searchQuery = '';
                 this.estencontrado = false;
             } finally {
-                this.cargando = false;
-                this.estencontrado = true;
+               this.cargando = false;
                 this.searchQuery = '';
+                this.estencontrado = true;
             }
         },
-        
+        async UpdateEnHikCentral(post) {
+            // Confirmación simple
+            if (!this.personIdHC) {
+                alert("❌ No se puede actualizar: No se encontró el PersonId de HikCentral. Verifique el estado primero.");
+                return;
+            }
+            if (!confirm(`¿Deseas actualizar a ${post} en HikCentral?`)) return;
+
+            this.cargando = true; // Bloquear UI para evitar clics repetidos
+            try {
+                const response = await API.post(`${this.baseUrl}/sync-hikdupdatedoce/${post}`, {
+                    personaId: this.personIdHC // <--- Enviamos el UUID en el body
+                });
+                console.log("Respuesta de sincronización:", response);
+                // Si el código que retorna Artemis es "0" es éxito
+                if (response.data.code === "0" || response.data.msg === "Success") {
+                    alert(`✅ Actualizado con éxito. ID en HC: ${response.data.data}`);
+
+                    // Actualizar el estado en la tabla localmente sin recargar
+                    await this.verificarRegistroHC(this.docenteData.CIInfPer);
+                    if (this.estaRegistrado) {
+                        await this.ejecutarComparacion(this.docenteData.CIInfPer);
+                    }
+                } else {
+                    alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
+                }
+            } catch (error) {
+                /*console.error("Error al sincronizar:", error);
+                const mensaje = error.response?.data?.details?.msg || "Error desconocido al conectar con el Biométrico";
+                alert(`❌ Error: ${mensaje}`);*/
+                this.searchQuery = '';
+                this.estencontrado = false;
+            } finally {
+                this.cargando = false;
+                this.searchQuery = '';
+                this.estencontrado = true;
+            }
+        },
+
     }
 };
 </script>

@@ -46,11 +46,6 @@ module.exports = defineConfig({
             ? 'http://biometricobackend.test/api'
             : 'http://biometricobackend.test/api'
         ),
-        __API_BOLSA__: JSON.stringify(
-          process.env.NODE_ENV === 'production'
-            ? 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
-            : 'http://vinculacionconlasociedad.utelvt.edu.ec/backendbolsaempleo/api'
-        ),
       }),
     ],
     output: {
