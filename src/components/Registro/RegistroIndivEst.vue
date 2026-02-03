@@ -204,7 +204,7 @@
         </div>
         <div v-if="!estencontrado">
             <span class="text-gray-500 dark:text-red-400">No se ha encontrado ningún registro. Verifique si el
-                estudiante posee una foto o se encuentra en el periodo de registro</span>
+                estudiante posee una foto o se encuentra matriculado</span>
         </div>
         <div v-else>
             <span class="text-gray-500 dark:text-gray-400">Ingrese la cédula de un estudiante para ver su información y
