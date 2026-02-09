@@ -186,6 +186,7 @@ const menuGroups = [
         subItems: [
           { name: "Estudiantes", path: "/estudiantes_pictures", pro: false },
           { name: "Docentes", path: "/docentes_pictures", pro: false },
+          { name: "Estudiantes Pre", path: "/estudiantes_pre_pictures", pro: false },
         ],
       },
       {
@@ -194,6 +195,7 @@ const menuGroups = [
         subItems: [
           { name: "Estudiantes", path: "/estudiantes_registro", pro: false },
           { name: "Personal UTLVTE", path: "/docentes_registro", pro: false },
+          { name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
         ],
       },
       

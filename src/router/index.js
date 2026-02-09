@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Estudiantes_FotoViews from '../views/FotosViews/Estudiantes_FotoViews.vue'
+import Estudiantes_Pre_FotoViews from '../views/FotosViews/Estudiantes_Pre_FotoViews.vue'
 import Docentes_FotoViews from '../views/FotosViews/Docentes_FotoViews.vue'
 import Registro_IndvDoc from '../views/FotosViews/Registro_IndvDoc.vue'
 import Registro_IndvEst from '../views/FotosViews/Registro_IndvEst.vue'
+import Registro_IndvPreEst from '../views/FotosViews/Registro_IndvPreEst.vue'
 import Login from '../views/Login/Signin.vue'
 
 const routes = [
@@ -16,6 +18,16 @@ const routes = [
     path: '/home',
     name: 'home',
     component: HomeView
+  },
+  {
+    path: '/estudiantes_pre_pictures',
+    name: 'Estudiantes Pre',
+    component: Estudiantes_Pre_FotoViews
+  },
+  {
+    path: '/estudiantes_pre_registro',
+    name: 'Estudiantes Pre R',
+    component: Registro_IndvPreEst
   },
   {
     path: '/estudiantes_pictures',

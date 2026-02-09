@@ -19,18 +19,7 @@
 
         </form>
         <br>
-        <div class="mt-4 flex flex-wrap gap-4 items-center">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Periodo Lectivo:</span>
-            <div v-for="periodo in periodosList" :key="periodo.idper" class="flex items-center">
-                <input type="radio" :id="'periodo-' + periodo.idper" :value="periodo.idper"
-                    v-model="periodoSeleccionado"
-                    class="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                <label :for="'periodo-' + periodo.idper"
-                    class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                    {{ periodo.DescPerLec }}
-                </label>
-            </div>
-        </div>
+        
         <br>
         <div v-if="estudianteData && estencontrado">
             <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -240,7 +229,7 @@ export default {
         };
     },
     mounted() {
-        this.cargarPeriodos();
+       
     },
     methods: {
         onlyNumbers(event) {
@@ -252,34 +241,17 @@ export default {
         // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
         getPhotoUrl(ci) {
             const baseURL2 = API.defaults.baseURL;
-            return `${baseURL2}/biometrico/fotografia/${ci}?t=${new Date().getTime()}`;
+            return `${baseURL2}/biometrico/fotografia-pre-est/${ci}?t=${new Date().getTime()}`;
         },
         getPhotoUrl2(ci) {
             const baseURL2 = API.defaults.baseURL;
             // Añadimos un timestamp para evitar que el navegador use la versión cacheada
-            return `${baseURL2}/biometrico/gethick/${ci}?t=${new Date().getTime()}`;
+            return `${baseURL2}/biometrico/gethick-pre-est/${ci}?t=${new Date().getTime()}`;
         },
-        // 1. Cargar los 2 periodos (activo y anterior)
-        async cargarPeriodos() {
-            try {
-                const response = await API.get(`${this.baseUrl}/get-periodos-rec`);
-                if (response.data.status) {
-                    this.periodosList = response.data.data;
-                    // Seleccionar automáticamente el primero (el activo)
-                    if (this.periodosList.length > 0) {
-                        this.periodoSeleccionado = this.periodosList[0].idper;
-                    }
-                }
-            } catch (error) {
-                console.error("Error al cargar periodos:", error);
-            }
-        },
+        
         async buscarEstudiante() {
-            //if (this.searchQuery.length < 10) return;
-            if (!this.periodoSeleccionado) {
-                alert("Por favor seleccione un periodo");
-                return;
-            }
+            if (this.searchQuery.length < 10) return;
+            
 
             this.cargando = true;
             this.estudianteData = null;
@@ -288,9 +260,7 @@ export default {
             try {
                 // Enviamos el periodoSeleccionado como query parameter o en la URL
                 // Ejemplo usando query param: ?periodo=126
-                const response = await API.get(`/biometrico/getindivEst/${this.searchQuery}`, {
-                    params: { idper: this.periodoSeleccionado }
-                });
+                const response = await API.get(`/biometrico/getindivEst-pre-est/${this.searchQuery}`);
 
                 if (!response.data || response.data.length === 0) {
                     this.estencontrado = false;
@@ -312,7 +282,7 @@ export default {
         async verificarRegistroHC(ci) {
             this.cargandoStatus = true;
             try {
-                const response = await API.get(`${this.baseUrl}/getperson-est/${ci}`);
+                const response = await API.get(`${this.baseUrl}/getperson-pre-est/${ci}`);
                 this.personIdHC = response.data.personId;
                 this.estaRegistrado = response.data.registrado;
                 console.log("PersonaID:", this.personIdHC);
@@ -326,7 +296,7 @@ export default {
             this.comparando = true;
             try {
 
-                const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-est/${ci}`);
+                const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-pre-est/${ci}`);
                 this.comparacionResultado = data;
                 if (data.identicas) {
                     // Usar un alert o notificación con el porcentaje
@@ -350,9 +320,7 @@ export default {
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
             try {
-                const response = await API.post(`${this.baseUrl}/sync-hikdoc-est-id/${post}`, {}, {
-                    params: { idper: this.periodoSeleccionado }
-                });
+                const response = await API.post(`${this.baseUrl}/sync-hikdoc-est-id-pre-est/${post}`);
                 console.log("Respuesta de sincronización:", response);
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
@@ -401,10 +369,8 @@ export default {
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
             try {
-                const response = await API.post(`${this.baseUrl}/sync-hikdoc-update/${post}`, {
+                const response = await API.post(`${this.baseUrl}/sync-hikdoc-update-pre-est/${post}`, {
                     personaId: this.personIdHC // <--- Enviamos el UUID en el body
-                }, {
-                    params: { idper: this.periodoSeleccionado }
                 });
                 console.log("Respuesta de sincronización:", response);
                 // Si el código que retorna Artemis es "0" es éxito

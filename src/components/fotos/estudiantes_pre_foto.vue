@@ -13,12 +13,12 @@
         </button>
         <!-- @input llama al debouncedFilter, que inicia la nueva consulta al backend -->
         <input type="text" placeholder="Ingresa la cédula o nombre a buscar..." v-model="searchQuery"
-          @input="debouncedFilter"
+          @input="debouncedFilter" @keypress="onlyNumbers"
           class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]" />
       </div>
     </form>
     <div>
-      <label for="">Total de estudiantes matriculados y con foto: {{ totalEstudiantes }}</label>
+      <label for="">Total de estudiantes matriculados en el pre y con foto: {{ totalEstudiantes }}</label>
     </div>
 
     <!-- Combobox for Carrera Filter -->
@@ -386,7 +386,7 @@ export default {
 
       try {
         // 1. Obtener lista de pendientes desde el nuevo endpoint
-        const { data } = await API.get(`${this.baseUrl}/get-pending-sync-est`, {
+        const { data } = await API.get(`${this.baseUrl}/get-pending-sync-pre-est`, {
           params: { carrera_name: this.selectedCarrera }
         });
 
@@ -404,7 +404,7 @@ export default {
 
           try {
             // Reutilizamos tu método individual que ya maneja la firma y el envío
-            const res = await API.post(`${this.baseUrl}/sync-hikdoc/${p.CIInfPer}`);
+            const res = await API.post(`${this.baseUrl}/sync-hikcentral-pre-est/${p.CIInfPer}`);
 
             if (res.data.code === "0" || res.data.msg === "Success") {
               console.log(`✅ Sincronizado: ${p.CIInfPer}`);
@@ -434,7 +434,7 @@ export default {
     async verificarRegistroHC(ci) {
       this.cargandoStatus = true;
       try {
-        const response = await API.get(`${this.baseUrl}/getperson-est/${ci}?v=${this.refreshKey}`);
+        const response = await API.get(`${this.baseUrl}/getperson-pre-est/${ci}?v=${this.refreshKey}`);
         this.estaRegistrado = response.data.registrado;
       } catch (error) {
         this.estaRegistrado = false;
@@ -453,7 +453,7 @@ export default {
 
         try {
           // Hacemos las peticiones UNA POR UNA
-          const res = await API.get(`${this.baseUrl}/getperson-est/${post.CIInfPer}`);
+          const res = await API.get(`${this.baseUrl}/getperson-pre-est/${post.CIInfPer}`);
           
           post.estaRegistradoHC = res.data.registrado;
         } catch (e) {
@@ -470,7 +470,7 @@ export default {
 
       this.cargando = true; // Bloquear UI para evitar clics repetidos
       try {
-        const response = await API.post(`${this.baseUrl}/sync-hikdoc/${post}`);
+        const response = await API.post(`${this.baseUrl}/sync-hikcentral-pre-est/${post}`);
 
         // Si el código que retorna Artemis es "0" es éxito
         if (response.data.code === "0" || response.data.msg === "Success") {
@@ -494,7 +494,7 @@ export default {
       this.comparando = true;
       try {
         const ci = this.objetoeditar.CIInfPer;
-        const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-est/${ci}?v=${this.refreshKey}`);
+        const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-pre-est/${ci}?v=${this.refreshKey}`);
 
         if (data.identicas) {
           // Usar un alert o notificación con el porcentaje
@@ -511,11 +511,11 @@ export default {
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
     getPhotoUrl(ci) {
       const baseURL2 = API.defaults.baseURL;
-      return `${baseURL2}/biometrico/fotografia/${ci}?v=${this.refreshKey}`;
+      return `${baseURL2}/biometrico/fotografia-pre-est/${ci}?v=${this.refreshKey}`;
     },
     getPhotoUrl2(ci) {
       const baseURL2 = API.defaults.baseURL
-      return `${baseURL2}/biometrico/gethick/${ci}?v=${this.refreshKey}`;
+      return `${baseURL2}/biometrico/gethick-pre-est/${ci}?v=${this.refreshKey}`;
     },
     async loadCarrerasList() {
       try {
@@ -547,7 +547,7 @@ export default {
         };
 
         // Petición al backend CON filtros incluidos
-        const response = await API.get(`${this.baseUrl}/estudiantesfoto`, {
+        const response = await API.get(`${this.baseUrl}/estudiantesfoto-pre-est`, {
           params
         });
         const data = response.data?.data || [];

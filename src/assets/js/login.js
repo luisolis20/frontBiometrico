@@ -32,7 +32,7 @@ export default {
           const tok = response.token;
           //console.log(response.id);
           //console.log(response);
-          if (role === 'sotics') {
+          if (role === 'sotics' || role === 'atics' || role === 'sa') {
             mostraralertas('LE DAMOS LA BIENVENIDA ADMIN ' + (response.name || ''), 'success');
             this.$router.push('/home');
           } 

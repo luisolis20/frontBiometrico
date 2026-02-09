@@ -43,8 +43,8 @@ module.exports = defineConfig({
       new webpack.DefinePlugin({
         __API_BIOMETRICO__: JSON.stringify(
           process.env.NODE_ENV === 'production'
-            ? 'http://biometricobackend.test/api'
-            : 'http://biometricobackend.test/api'
+            ? 'http://192.168.4.2:8000/api'
+            : 'http://192.168.4.2:8000/api'
         ),
       }),
     ],

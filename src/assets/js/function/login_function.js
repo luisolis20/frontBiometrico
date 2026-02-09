@@ -18,8 +18,8 @@ export async function enviarsolilogin(method, parametros, url, mensaje) {
           mensaje: response.data.mensaje,
         };
       }
-      else if(response.data.Role === "sotics") {
-        store.commit("setRol_bio", response.data.Rol);
+      else if(response.data.Role === "sotics" || response.data.Role === "atics" || response.data.Role === "sa"){
+        store.commit("setRol_bio", response.data.Role);
         store.commit("setemail_bio", response.data.email);
         //store.commit("setid_bio", response.data.id);
 
