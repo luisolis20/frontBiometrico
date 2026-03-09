@@ -19,7 +19,7 @@ export default {
         };
 
         const response = await enviarsolilogin('POST', parametros, this.url2, 'Logueado');
-        //console.log(response);
+        console.log(response);
         if (response.error) {
           mostraralertas(response.mensaje, 'warning');
         } else if (response) {

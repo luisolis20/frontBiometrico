@@ -37,3 +37,11 @@ import Backdrop from './Backdrop.vue'
 // En JS no necesitas definir tipos para la desestructuración
 const { isExpanded, isHovered } = useSidebar()
 </script>
+<script>
+import {getMe} from '@/store/auth';
+export default {
+  async mounted(){
+    const usuario = await getMe();
+  }
+}
+</script>
