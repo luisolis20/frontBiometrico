@@ -207,7 +207,14 @@ const menuData = [
     title: "Others",
     items: [
       
-      // ... Add other menu items here
+      {
+        icon: UserCircleIcon,
+        name: "Devices",
+        subItems: [
+          { name: "D-AC", path: "/devices", pro: false },
+          //{ name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
+        ],
+      },
     ],
   },
 ];

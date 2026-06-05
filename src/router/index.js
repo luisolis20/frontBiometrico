@@ -6,6 +6,8 @@ import Docentes_FotoViews from '../views/FotosViews/Docentes_FotoViews.vue'
 import Registro_IndvDoc from '../views/FotosViews/Registro_IndvDoc.vue'
 import Registro_IndvEst from '../views/FotosViews/Registro_IndvEst.vue'
 import Registro_IndvPreEst from '../views/FotosViews/Registro_IndvPreEst.vue'
+import Devices_allViews from '../views/Devices/Devices_allViews.vue'
+
 import Login from '../views/Login/Signin.vue'
 
 const routes = [
@@ -49,6 +51,12 @@ const routes = [
     name: 'EstudianteR',
     component: Registro_IndvEst
   },
+  {
+    path: '/devices',
+    name: 'Devices',
+    component: Devices_allViews
+  },
+  
   {
     path: '/about',
     name: 'about',
