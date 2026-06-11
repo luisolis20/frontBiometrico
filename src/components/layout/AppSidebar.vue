@@ -211,9 +211,10 @@ const menuData = [
         icon: UserCircleIcon,
         name: "Reporte de Asistencia",
         subItems: [
-          { name: "Consultar", path: "/asistencia", pro: false },
+          { name: "Consultar", path: "/asistencia", pro: false, new: true },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
         ],
+        
       },
     ],
   },

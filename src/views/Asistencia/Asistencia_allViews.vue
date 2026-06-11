@@ -15,5 +15,5 @@ import PageBreadcrumb from "@/components/common/PageBreadcrumb.vue";
 import AdminLayout from "@/components/layout/AdminLayout.vue";
 //import ComponentCard from "@/components/common/ComponentCard.vue";
 import Asistencia_allViews from "@/components/asistencia/Asistencia.vue";
-const currentPageTitle = ref("Dispositivos de Control de Acceso");
+const currentPageTitle = ref("Reporte de Asistencia Individual");
 </script>

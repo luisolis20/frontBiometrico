@@ -3,23 +3,30 @@
         <!-- Search Form -->
         <form class="flex-grow">
             <div class="relative">
-                <button class="absolute -translate-y-1/2 left-4 top-1/2">
-                    <svg class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
+                <button type="submit" :disabled="cargando"
+                    class="absolute -translate-y-1/2 left-4 top-1/2 transition-opacity disabled:opacity-50">
+                    <svg v-if="cargando" class="animate-spin h-5 w-5 text-brand-500" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    <svg v-else class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                            fill="" />
+                            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z" />
                     </svg>
                 </button>
-                <!-- @input llama al debouncedFilter, que inicia la nueva consulta al backend -->
                 <input type="text" placeholder="Ingresa la cédula a buscar..." v-model="searchQuery"
-                    @input="debouncedFilter" @keypress="onlyNumbers" @keyup.enter="buscarDocente"
-                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]" />
+                    :disabled="cargando" @input="debouncedFilter" @keypress="onlyNumbers"
+                    @keyup.enter="buscarDocente"
+                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px] disabled:opacity-50 disabled:cursor-not-allowed" />
             </div>
-
         </form>
         <br>
-        <div v-if="docenteData && estencontrado">
+        <div v-if="docenteData && estencontrado && !cargando">
             <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                     <div class="flex flex-col items-center w-full gap-6 xl:flex-row">
@@ -114,20 +121,18 @@
 
                 </div>
             </div>
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+           <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-                            Información HikCentral
-                        </h4>
+                    <div class="w-full">
+                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Información
+                            HikCentral</h4>
                         <p class="text-[11px] text-gray-400 italic">
-                            Nota: Los datos obtenidos aquí son los datos que el docente tiene registrados en HikCentral.
-                            Luego que verifiques la información debes dar clic en "Sincronizar HK"
+                            Nota: Los datos obtenidos aquí son los datos que el estudiante tiene registrados en
+                            HikCentral. Luego que verifiques la información debes dar clic en "Sincronizar HK"
                         </p>
                         <br>
                         <div class="file-uploader mt-5 pb-6">
                             <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">Foto</label>
-
                             <div class="mb-4 flex justify-center">
                                 <div class="relative">
                                     <img :src="getPhotoUrl(docenteData.CIInfPer)"
@@ -138,15 +143,13 @@
                                 </div>
                                 &nbsp;&nbsp;&nbsp;
                                 <div class="relative">
-                                    <img :src="getPhotoUrl2(docenteData.CIInfPer)" loading="lazy"
+                                    <img :src="getPhotoUrl2(docenteData.CIInfPer)"
                                         class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
                                         @error="handleImageError" />
                                     <span
                                         class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">HIKCENTRAL</span>
                                 </div>
                             </div>
-
-
                         </div>
                         <div class="mt-2">
                             <span v-if="cargandoStatus" class="text-xs text-gray-400">Verificando en
@@ -157,57 +160,101 @@
                                 {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
                             </span>
                         </div>
-                        <div v-if="comparando" class="text-xs text-blue-500 animate-pulse">
+                        <div v-if="comparando" class="text-xs text-blue-500 animate-pulse mt-2">
                             Calculando similitud facial...
                         </div>
-                        <div v-if="comparacionResultado" class="mt-2">
+                        <div v-if="comparacionResultado && !comparando" class="mt-2">
                             <span :class="comparacionResultado.identicas ? 'text-green-600' : 'text-red-600'"
                                 class="text-sm font-bold">
-                                Similitud: {{ comparacionResultado.similitud }}%
-                                ({{ comparacionResultado.identicas ? 'Coincide' : 'No coincide' }})
+                                Similitud: {{ comparacionResultado.similitud }}% ({{ comparacionResultado.identicas ?
+                                'Coincide' : 'No coincide' }})
                             </span>
                         </div>
-
                     </div>
-                    <div
-                        class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11">
-
-                        <button v-if="!estaRegistrado && !cargandoStatus" type="button"
-                            @click="registrarEnHikCentral(docenteData.CIInfPer)"
-                            class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
-                            Enviar Foto a HIK
-                        </button>
-
-                        <button v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas"
-                            type="button" @click="UpdateEnHikCentral(docenteData.CIInfPer)"
-                            class="flex w-full justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 sm:w-auto shadow-lg transition-all">
-                            Actualizar Foto en HIK (Baja Similitud)
-                        </button>
-
-                        <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas"
-                            class="flex items-center gap-2 text-green-600 font-medium text-sm">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Información Sincronizada y Validada
-                        </div>
-                        <!-- Modal de Edición de Usuario 
-              <p v-else class="text-[11px] text-gray-400 italic">Complete todos los campos para editar.</p>-->
+                </div>
+                <div
+                    class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11 mt-4">
+                    <button v-if="!estaRegistrado && !cargandoStatus" type="button" :disabled="cargando"
+                        @click="registrarEnHikCentral(docenteData.CIInfPer)"
+                        class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50">
+                        Enviar Foto a HIK
+                    </button>
+                    <button v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas"
+                        type="button" :disabled="cargando" @click="UpdateEnHikCentral(docenteData.CIInfPer)"
+                        class="flex w-full justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 sm:w-auto shadow-lg transition-all disabled:opacity-50">
+                        Actualizar Foto en HIK (Baja Similitud)
+                    </button>
+                    <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas"
+                        class="flex items-center gap-2 text-green-600 font-medium text-sm">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Información Sincronizada y Validada
                     </div>
-
-
                 </div>
             </div>
         </div>
-        <div v-if="!estencontrado">
-            <span class="text-gray-500 danger:text-gray-400">No se ha encontrado ningún registro. Verifique si el
-                docente posee una foto o está habilitado</span>
-        </div>
-        <div v-else>
-            <span class="text-gray-500 danger:text-gray-400">Ingrese la cédula de un docente para ver su información y
-                cargarla en HikCentral.</span>
+        <div v-if="!docenteData" class="mt-4">
+            <div v-if="cargando"
+                class="flex flex-col items-center justify-center p-12 border border-dashed border-gray-200 rounded-2xl dark:border-gray-800 bg-gray-50/30 dark:bg-white/[0.01]">
+                <svg class="animate-spin h-9 w-9 text-brand-500 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Consultando expediente en el SIAD...</p>
+                <p class="text-xs text-gray-400 mt-1">Por favor espere un momento.</p>
+            </div>
+
+            <div v-else-if="errorValidacion"
+                class="p-4 rounded-xl bg-red-50 border border-red-200 dark:bg-red-950/20 dark:border-red-900/50 text-red-800 dark:text-red-400">
+                <div class="flex gap-3 items-start">
+                    <span class="text-lg">🛑</span>
+                    <div>
+                        <h5 class="text-sm font-bold">Formato de Identificación Inválido</h5>
+                        <p class="text-xs mt-1 leading-relaxed opacity-90">{{ errorValidacionTexto }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else-if="!estencontrado"
+                class="p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50 text-amber-800 dark:text-amber-400">
+                <div class="flex gap-3 items-start">
+                    <span class="text-lg">⚠️</span>
+                    <div>
+                        <h5 class="text-sm font-bold">Personal no localizado u omitido</h5>
+                        <p class="text-xs mt-1 leading-relaxed opacity-90">
+                            No se ha encontrado ningún registro que coincida exactamente con los parámetros ingresados.
+                            Por favor, realice las siguientes verificaciones:
+                        </p>
+                        <ul class="list-disc list-inside text-xs mt-2 space-y-1 opacity-95 pl-1">
+                            <li>Confirme que el número de cédula esté digitado correctamente.</li>
+                            <li>Asegúrese de que el personal se encuentre <strong>habilitado</strong>.</li>
+                            <li>Verifique si el personal dispone de una <strong>fotografía activa</strong> cargada en el
+                                SIAD.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else
+                class="p-4 rounded-xl bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-900/50 text-green-800 dark:text-green-400">
+                <div class="flex gap-3 items-start">
+                    <span class="text-lg">💡</span>
+                    <div>
+                        <h5 class="text-sm font-bold">Módulo de sincronización biométrica</h5>
+                        <p class="text-xs mt-1 leading-relaxed opacity-90">
+                            Ingrese la cédula de un personal para cargar sus datos desde el SIAD, realizar la
+                            comparación de vectores faciales y sincronizar su estatus con las bases de datos de
+                            HikCentral.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -320,13 +367,29 @@ export default {
         },
         async registrarEnHikCentral(post) {
             // Confirmación simple
-            if (!confirm(`¿Deseas registrar a ${post} en HikCentral?`)) return;
+            const confirmacion = await Swal.fire({
+                title: '¿Confirmar Registro?',
+                text: `¿Deseas registrar a ${this.docenteData?.NombInfPer || post} en HikCentral?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#126E1B',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, registrar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!confirmacion.isConfirmed) return;
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
+            Swal.fire({
+                title: 'Sincronizando...',
+                text: 'Enviando vectores faciales a HikCentral.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
             try {
                 const response = await API.post(`${this.baseUrl}/sync-hikcentral/${post}`);
-
-                console.log("Respuesta de sincronización:", response);
+                Swal.close();
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
                     alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
@@ -367,14 +430,30 @@ export default {
                 alert("❌ No se puede actualizar: No se encontró el PersonId de HikCentral. Verifique el estado primero.");
                 return;
             }
-            if (!confirm(`¿Deseas actualizar a ${post} en HikCentral?`)) return;
+           const confirmacion = await Swal.fire({
+                title: '¿Actualizar Fotografía?',
+                text: `¿Deseas reemplazar la foto actual de ${this.estudianteData?.NombInfPer || post} en HikCentral?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#126E1B',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, actualizar',
+                cancelButtonText: 'Cancelar'
+            });
+            if (!confirmacion.isConfirmed) return;
+            Swal.fire({
+                title: 'Actualizando Base Biométrica...',
+                text: 'Reemplazando registro de imagen anterior...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
             try {
                 const response = await API.post(`${this.baseUrl}/sync-hikdupdatedoce/${post}`, {
                     personaId: this.personIdHC // <--- Enviamos el UUID en el body
                 });
-                console.log("Respuesta de sincronización:", response);
+                Swal.close();
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
                     alert(`✅ Actualizado con éxito. ID en HC: ${response.data.data}`);
