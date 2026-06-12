@@ -13,7 +13,7 @@
           </svg>
         </div>
         <input type="text" placeholder="Ingresa la cédula o nombre a buscar..." v-model="searchQuery"
-          @input="debouncedFilter" :disabled="cargando || syncMode"
+          @input="debouncedFilter" :disabled="cargando || syncMode" @keypress="onlyNumbers"
           class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px] disabled:opacity-50 disabled:cursor-not-allowed" />
       </div>
     </form>
@@ -196,6 +196,8 @@ import JSZip from "jszip";
 import Modal from '@/components/Modal/Modal.vue'
 import { saveAs } from "file-saver";
 import debounce from 'lodash.debounce';
+import Swal from 'sweetalert2';
+import { mostraralertas2, enviarsolig, eliminacion, confimarhabi, elimnarpermanente } from '@/assets/js/function/funciones';
 
 export default {
   data() {
@@ -253,7 +255,17 @@ export default {
   },
   methods: {
     async iniciarSincronizacionMasiva() {
-      if (!confirm("Se buscarán usuarios no registrados y se enviarán a HikCentral. ¿Continuar?")) return;
+     const confirmacion = await Swal.fire({
+        title: '¿Confirmar Sincronización?',
+        text: `Se buscarán usuarios no registrados y se enviarán a HikCentral. ¿Continuar?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#126E1B',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, registrar',
+        cancelButtonText: 'Cancelar'
+      });
+      if (!confirmacion.isConfirmed) return;
 
       this.syncMode = true;
       this.syncIndex = 0;
@@ -267,7 +279,7 @@ export default {
         this.pendientes = data.pendientes;
         console.log(this.pendientes);
         if (this.pendientes.length === 0) {
-          alert("No se encontraron usuarios pendientes de registro.");
+          mostraralertas2("No se encontraron usuarios pendientes de registro.", "warning");
           this.syncMode = false;
           return;
         }
@@ -296,24 +308,13 @@ export default {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
 
-        alert("Sincronización masiva finalizada.");
+        mostraralertas2("Sincronización masiva finalizada.", "success");
         this.getEstudiantes(this.currentPage, this.searchQuery, this.selectedCarrera); // Refrescar tabla
 
       } catch (error) {
-        alert("Error al obtener la lista de pendientes.");
+        mostraralertas2("Error al obtener la lista de pendientes.", "error");
       } finally {
         this.syncMode = false;
-      }
-    },
-    async verificarRegistroHC(ci) {
-      this.cargandoStatus = true;
-      try {
-        const response = await API.get(`${this.baseUrl}/getperson-est/${ci}?v=${this.refreshKey}`);
-        this.estaRegistrado = response.data.registrado;
-      } catch (error) {
-        this.estaRegistrado = false;
-      } finally {
-        this.cargandoStatus = false;
       }
     },
     // Nuevo método para validar los estados de la tabla actual
@@ -336,50 +337,6 @@ export default {
 
         // Opcional: un delay de 50ms para dar respiro al servidor
         await new Promise(resolve => setTimeout(resolve, 50));
-      }
-    },
-    async registrarEnHikCentral(post) {
-      // Confirmación simple
-      if (!confirm(`¿Deseas registrar a ${post} en HikCentral?`)) return;
-
-      this.cargando = true; // Bloquear UI para evitar clics repetidos
-      try {
-        const response = await API.post(`${this.baseUrl}/sync-hikdoc/${post}`);
-
-        // Si el código que retorna Artemis es "0" es éxito
-        if (response.data.code === "0" || response.data.msg === "Success") {
-          alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
-
-          // Actualizar el estado en la tabla localmente sin recargar
-          post.estaRegistradoHC = true;
-        } else {
-          alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
-        }
-      } catch (error) {
-        console.error("Error al sincronizar:", error);
-        const mensaje = error.response?.data?.details?.msg || "Error desconocido al conectar con el Biométrico";
-        alert(`❌ Error: ${mensaje}`);
-      } finally {
-        this.cargando = false;
-      }
-    },
-    
-    async ejecutarComparacion() {
-      this.comparando = true;
-      try {
-        const ci = this.objetoeditar.CIInfPer;
-        const { data } = await API.get(`${this.baseUrl}/compare-hikdoc-est/${ci}?v=${this.refreshKey}`);
-
-        if (data.identicas) {
-          // Usar un alert o notificación con el porcentaje
-          alert(`✅ Match: ${data.similitud} de similitud.`);
-        } else {
-          alert(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
-        }
-      } catch (error) {
-        alert("Error en la comparación");
-      } finally {
-        this.comparando = false;
       }
     },
     // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
@@ -510,9 +467,7 @@ export default {
         saveAs(blob, fileName);
       } catch (error) {
         console.error("Error al descargar la foto:", error?.response?.data || error);
-        alert(
-          "Ocurrió un error al descargar la foto. Es posible que el estudiante no tenga una fotografía."
-        );
+        mostraralertas2("Ocurrió un error al descargar la foto. Es posible que el estudiante no tenga una fotografía.", "error");
       }
     },
 
@@ -536,7 +491,7 @@ export default {
         const totalRegistros = registros.length;
 
         if (totalRegistros === 0) {
-          alert("No se encontraron estudiantes con foto para descargar.");
+          mostraralertas2("No se encontraron estudiantes con foto para descargar.", "warning");
           return;
         }
 
@@ -615,20 +570,23 @@ export default {
           },
         });
         saveAs(content, "Estudiantes_con_Foto_por_Carrera.zip");
-        alert("Descarga completada con éxito!");
+        mostraralertas2("Descarga completada con éxito!", "success");
       } catch (error) {
         console.error("❌ Error al generar ZIP:", error.response?.status, error);
         if (error.response?.status === 429) {
-          alert(
-            "El servidor reportó 'Too Many Requests' (429). Por favor, inténtelo de nuevo en un momento."
+          mostraralertas2(
+            "El servidor reportó 'Too Many Requests' (429). Por favor, inténtelo de nuevo en un momento.",
+            "error"
           );
         } else if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-          alert(
-            "La conexión expiró al intentar descargar todos los datos. El proceso es muy pesado. Inténtelo de nuevo o contacte a soporte."
+          mostraralertas2(
+            "La conexión expiró al intentar descargar todos los datos. El proceso es muy pesado. Inténtelo de nuevo o contacte a soporte.",
+            "error"
           );
         } else {
-          alert(
-            "Ocurrió un error general al descargar los datos. Revise la consola para más detalles."
+          mostraralertas2(
+            "Ocurrió un error general al descargar los datos. Revise la consola para más detalles.",
+            "error"
           );
         }
       } finally {

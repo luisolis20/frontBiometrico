@@ -265,6 +265,8 @@ import API from "@/assets/js/services/axios";
 import { useRoute } from "vue-router";
 import { saveAs } from "file-saver";
 import debounce from 'lodash.debounce';
+import { mostraralertas2 } from "@/assets/js/function/funciones";
+import Swal from 'sweetalert2';
 export default {
     data() {
         return {
@@ -281,6 +283,8 @@ export default {
             currentSyncName: '',
             comparacionResultado: null,
             personIdHC: null,
+            errorValidacion: false,
+            errorValidacionTexto: ""
         };
     },
     methods: {
@@ -300,7 +304,20 @@ export default {
             return `${baseURL2}/biometrico/gethick/${ci}?t=${new Date().getTime()}`;
         },
         async buscarDocente() {
-            if (this.searchQuery.length < 10) return;
+            this.errorValidacion = false;
+            this.errorValidacionTexto = "";
+            this.estencontrado = true;
+            if (!this.searchQuery || this.searchQuery.trim() === "") {
+                this.errorValidacion = true;
+                this.errorValidacionTexto = "El campo de búsqueda no puede estar vacío. Por favor ingrese una cédula.";
+                return;
+            }
+
+            if (this.searchQuery.length < 10) {
+                this.errorValidacion = true;
+                this.errorValidacionTexto = `La cédula ingresada tiene solo ${this.searchQuery.length} dígitos. Verifique el número e intente de nuevo (Debe tener 10 dígitos).`;
+                return;
+            }
 
             this.cargando = true;
             this.docenteData = null;
@@ -334,7 +351,6 @@ export default {
                 const response = await API.get(`${this.baseUrl}/getperson/${ci}`);
                  this.personIdHC = response.data.personId;
                 this.estaRegistrado = response.data.registrado;
-                console.log("PersonaID:", this.personIdHC);
             } catch (error) {
                 this.estaRegistrado = false;
             } finally {
@@ -356,7 +372,7 @@ export default {
                     console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
                 }
             } catch (error) {
-                alert("Error en la comparación");
+                mostraralertas2("Error en la comparación", "error");
             } finally {
                 this.comparando = false;
             }
@@ -392,7 +408,7 @@ export default {
                 Swal.close();
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
-                    alert(`✅ Registrado con éxito. ID en HC: ${response.data.data}`);
+                    mostraralertas2(`✅ Registrado con éxito. ID en HC: ${response.data.data}`, "success");
 
                     // Actualizar el estado en la tabla localmente sin recargar
                     await this.verificarRegistroHC(this.docenteData.CIInfPer);
@@ -401,19 +417,19 @@ export default {
                     }
                 } else if (response.data.code === "131") {
                     console.warn("⚠️ Usuario ya registrado en HikCentral.");
-                    alert(`⚠️ Usuario ya registrado en HikCentral.`);
+                    mostraralertas2(`⚠️ Usuario ya registrado en HikCentral.`, "warning");
                     this.estaRegistrado = true;
                     this.searchQuery = '';
                     this.estencontrado = true;
                 } else if (response.data.code === "128") {
                     console.warn("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");
-                    alert("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");    
+                    mostraralertas2(`La foto de: ${this.docenteData.CIInfPer} no es compatible con HikCentral.`, "error");
                     this.searchQuery = '';
                     this.estencontrado = false;
                     this.estaRegistrado = false;
                 }
                 else {
-                    alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
+                    mostraralertas2(`⚠️ Respuesta del servidor: ${response.data.msg}`, "warning");
                 }
             } catch (error) {
                 this.searchQuery = '';
@@ -427,7 +443,7 @@ export default {
         async UpdateEnHikCentral(post) {
             // Confirmación simple
             if (!this.personIdHC) {
-                alert("❌ No se puede actualizar: No se encontró el PersonId de HikCentral. Verifique el estado primero.");
+                mostraralertas2("❌ No se puede actualizar: No se encontró el PersonId de HikCentral. Verifique el estado primero.", "error");
                 return;
             }
            const confirmacion = await Swal.fire({
@@ -456,7 +472,7 @@ export default {
                 Swal.close();
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
-                    alert(`✅ Actualizado con éxito. ID en HC: ${response.data.data}`);
+                    mostraralertas2(`✅ Actualizado con éxito. ID en HC: ${response.data.data}`, "success");
 
                     // Actualizar el estado en la tabla localmente sin recargar
                     await this.verificarRegistroHC(this.docenteData.CIInfPer);
@@ -465,12 +481,12 @@ export default {
                     }
                 }else if (response.data.code === "128") {
                     console.warn("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");
-                    alert("La foto de: " + this.docenteData.CIInfPer + " no es compatible con HikCentral.");    
+                    mostraralertas2(`La foto de: ${this.docenteData.CIInfPer} no es compatible con HikCentral.`, "error");
                     this.searchQuery = '';
                     this.estencontrado = false;
                     this.estaRegistrado = false;
                 } else {
-                    alert(`⚠️ Respuesta del servidor: ${response.data.msg}`);
+                    mostraralertas2(`⚠️ Respuesta del servidor: ${response.data.msg}`, "warning");
                 }
             } catch (error) {
                 /*console.error("Error al sincronizar:", error);

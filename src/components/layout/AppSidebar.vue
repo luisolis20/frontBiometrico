@@ -187,7 +187,7 @@ const menuData = [
         name: "Fotos",
         subItems: [
           { name: "Estudiantes", path: "/estudiantes_pictures", pro: false },
-          { name: "Docentes", path: "/docentes_pictures", pro: false },
+          { name: "Personal UTLVTE", path: "/docentes_pictures", pro: false },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_pictures", pro: false },
         ],
       },
@@ -211,7 +211,8 @@ const menuData = [
         icon: UserCircleIcon,
         name: "Reporte de Asistencia",
         subItems: [
-          { name: "Consultar", path: "/asistencia", pro: false, new: true },
+          { name: "Individual", path: "/asistencia", pro: false, new: true },
+          //{ name: "Masiva", path: "/asistencia-masiva", pro: false, new: true },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
         ],
         

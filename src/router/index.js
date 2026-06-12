@@ -8,6 +8,7 @@ import Registro_IndvEst from '../views/FotosViews/Registro_IndvEst.vue'
 import Registro_IndvPreEst from '../views/FotosViews/Registro_IndvPreEst.vue'
 import Devices_allViews from '../views/Devices/Devices_allViews.vue'
 import Asistencia_allViews from '../views/Asistencia/Asistencia_allViews.vue'
+import AsistenciaMasiva_allViews from '../views/Asistencia/AsistenciaMasiva_allViews.vue'
 
 import Login from '../views/Login/Signin.vue'
 
@@ -61,6 +62,11 @@ const routes = [
     path: '/asistencia',
     name: 'Asistencia',
     component: Asistencia_allViews
+  },
+  {
+    path: '/asistencia-masiva',
+    name: 'AsistenciaMasiva',
+    component: AsistenciaMasiva_allViews
   },
   
   {

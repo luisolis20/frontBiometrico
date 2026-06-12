@@ -26,7 +26,7 @@
             posee una foto o está habilitado.
         </div>
         <div v-else-if="!personaData && !cargando" class="text-sm text-gray-500 dark:text-gray-400">
-            Ingrese la cédula del personal para ver su información y su regsitro en HikCentral.
+            Ingrese la cédula del personal para ver su información y sus marcaciones en HikCentral (dispositivos de reconocimiento facial).
         </div>
 
         <div v-if="personaData && estencontrado">
@@ -131,7 +131,7 @@
 
             <div v-if="estaRegistrado" class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
                 <h4 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
-                    Reporte de Asistencia
+                    Reporte de Asistencia HIKCENTRAL
                 </h4>
                 <div
                     class="p-4 mb-4 text-sm text-amber-800 rounded-lg bg-amber-50 dark:bg-gray-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
@@ -302,6 +302,51 @@
                         local para este
                         periodo. Las de HikCentral serán registradas como nuevas.
                     </div>
+                    <transition name="fade">
+                        <div v-if="mostrarTablaLocal && datosLocales.length > 0" class="mb-6">
+                            <h4 class="mb-3 text-sm font-semibold text-gray-700 dark:text-white/80">
+                                Registros Actuales (Base de Datos)
+                            </h4>
+                            <div class="overflow-x-auto border border-blue-100 dark:border-blue-800/50 rounded-lg">
+                                <table class="w-full text-left border-collapse min-w-[800px]">
+                                    <thead class="bg-blue-50/50 dark:bg-blue-900/10">
+                                        <tr class="text-xs font-medium text-blue-800 dark:text-blue-400">
+                                            <th class="py-3 px-4">Fecha</th>
+                                            <th class="py-3 px-4 text-center">Hora Entrada</th>
+                                            <th class="py-3 px-4 text-center">Almuerzo Salida</th>
+                                            <th class="py-3 px-4 text-center">Almuerzo Entrada</th>
+                                            <th class="py-3 px-4 text-center">Hora Salida</th>
+                                            <th class="py-3 px-4 text-center">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(localRecord, index) in datosLocales" :key="index"
+                                            class="border-t border-gray-100 dark:border-gray-800/50 text-xs text-gray-700 dark:text-gray-300">
+                                            <td class="py-2 px-4 font-medium">{{ localRecord.fecha }}</td>
+                                            <td class="py-2 px-4 text-center font-mono">{{
+                                                formatTimeFromDB(localRecord.hora_entrada) }}
+                                            </td>
+                                            <td class="py-2 px-4 text-center font-mono">{{
+                                                formatTimeFromDB(localRecord.hora_almuerzo_salida) }}
+                                            </td>
+                                            <td class="py-2 px-4 text-center font-mono">{{
+                                                formatTimeFromDB(localRecord.hora_almuerzo_entrada) }}
+                                            </td>
+                                            <td class="py-2 px-4 text-center font-mono">{{
+                                                formatTimeFromDB(localRecord.hora_salida) }}
+                                            </td>
+                                            <td class="py-2 px-4 text-center">
+                                                <span
+                                                    :class="['px-2 py-0.5 text-[10px] font-semibold rounded-full border', obtenerClasePorEstadoDB(localRecord.estado_asistencia)]">
+                                                    {{ localRecord.estado_asistencia || 'Desconocido' }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </transition>
 
                     <button @click="compararYRegistrar" :disabled="sincronizando"
                         class="h-11 px-6 w-full rounded-lg flex items-center justify-center gap-2 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
@@ -386,6 +431,7 @@
                         </table>
                     </div>
                 </div>
+                <!--
                 <div v-if="attendanceData && attendanceData.length > 0" class="flex justify-end mb-4">
                     <button @click="generarPDF" :disabled="generandoPDF"
                         class="h-11 px-6 rounded-lg flex items-center justify-center gap-2 bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
@@ -404,7 +450,7 @@
                         </svg>
                         <span>{{ generandoPDF ? 'Generando PDF...' : 'Generar PDF' }}</span>
                     </button>
-                </div>
+                </div> -->
 
                 <div v-else-if="attendanceData && attendanceData.length === 0"
                     class="mt-6 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/20 p-4 rounded-lg text-center border border-gray-100 dark:border-gray-800">
@@ -447,6 +493,8 @@ export default {
             existeEnDB: false,
             sincronizando: false,
             datosFinales: null,
+            datosLocales: [],
+            mostrarTablaLocal: false,
         };
     },
     methods: {
@@ -665,12 +713,18 @@ export default {
                     beginTime: this.beginTime,
                     endTime: this.endTime
                 });
+                console.log("Respuesta verificación DB local:", res);
                 this.existeEnDB = res.data.exists;
+                this.datosLocales = res.data.data || [];
+
+                // Si hay datos, mostramos la tabla
+                this.mostrarTablaLocal = this.existeEnDB;
             } catch (error) {
                 console.error("Error al verificar DB local:", error);
             }
         },
         async compararYRegistrar() {
+            this.mostrarTablaLocal = false;
             this.sincronizando = true;
 
             // 1. Filtramos los registros que sean estado 7 (No programado/Fin de semana)
@@ -1043,3 +1097,15 @@ export default {
     }
 };
 </script>
+<style scoped>
+/* Clases para el desvanecimiento de Vue */
+.fade-enter-active, 
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from, 
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

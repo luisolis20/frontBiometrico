@@ -460,7 +460,7 @@ export default {
                     console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
                 }
             } catch (error) {
-                alert("Error en la comparación");
+                mostraralertas2("Error en la comparación", "error");
             } finally {
                 this.comparando = false;
             }
