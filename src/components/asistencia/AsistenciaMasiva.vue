@@ -541,7 +541,7 @@ export default {
         // 1. Datos HC
         const resHC = await API.post('/biometrico/attendance-report', {
           personCode: post.CIInfPer,
-          personId: post.personIdHC, // <-- Agregamos el personId aquí por si la API lo requiere
+          personID: post.personIdHC, // <-- Agregamos el personId aquí por si la API lo requiere
           beginTime: this.beginTime,
           endTime: this.endTime
         });
@@ -705,7 +705,7 @@ export default {
           // 3. Enviar al backend incluyendo el personId procesado previamente
           await API.post('/biometrico/attendance-sync', {
             ci_empleado: post.CIInfPer,
-            personId: post.personIdHC, // Enviado por consistencia arquitectónica
+            personID: post.personIdHC, // Enviado por consistencia arquitectónica
             beginTime: this.beginTime,
             endTime: this.endTime,
             marcaciones: marcacionesFormateadas
