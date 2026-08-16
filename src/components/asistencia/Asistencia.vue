@@ -221,7 +221,11 @@
                                         </td>
                                         <td
                                             :class="['py-3 px-4 text-center font-mono font-semibold text-green-600 dark:text-green-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
-                                            {{ formatTimeOnly(record.attendanceBaseInfo?.beginTime) }}
+                                            {{ 
+                                                String(record.attendanceBaseInfo?.beginTime).includes('T08:05:00') 
+                                                ? formatTimeOnly(record.attendanceDetailInfo?.recordTime?.[0]?.beginTime) 
+                                                : formatTimeOnly(record.attendanceBaseInfo?.beginTime) 
+                                            }}
                                         </td>
                                         <td
                                             :class="['py-3 px-4 text-center font-mono text-amber-600 dark:text-amber-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
@@ -691,6 +695,7 @@ export default {
                     beginTime: this.beginTime,
                     endTime: this.endTime
                 });
+                console.log("Respuesta de asistencia:", response);
                 // HikCentral normalmente devuelve la lista de registros dentro de data.data.list
                 if (response.data && response.data.data && response.data.data.record) {
                     this.attendanceData = response.data.data.record;
