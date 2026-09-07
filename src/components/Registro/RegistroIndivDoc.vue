@@ -349,6 +349,7 @@ export default {
             this.cargandoStatus = true;
             try {
                 const response = await API.get(`${this.baseUrl}/getperson/${ci}`);
+                console.log("✅ Estado de registro en HikCentral:", response);
                  this.personIdHC = response.data.personId;
                 this.estaRegistrado = response.data.registrado;
             } catch (error) {
@@ -357,7 +358,18 @@ export default {
                 this.cargandoStatus = false;
             }
         },
-
+        async eliminarRegistroHC(ci) {
+            this.cargandoStatus = true;
+            try {
+                const response = await API.get(`${this.baseUrl}/delete-hikdoc/${ci}`);
+                console.log("✅ Eliminado de HikCentral:", response);
+                this.estaRegistrado = false;
+            } catch (error) {
+                this.estaRegistrado = false;
+            } finally {
+                this.cargandoStatus = false;
+            }
+        },
         async ejecutarComparacion(ci) {
             this.comparando = true;
             try {

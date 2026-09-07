@@ -207,70 +207,89 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <template v-for="(record, index) in asistenciasAgrupadas" :key="index">
+                                <template
+                                    v-for="(record, index) in attendanceData.filter(r => String(r.attendanceBaseInfo?.attendanceStatus) !== '7')"
+                                    :key="index">
                                     <tr :class="[
                                         'border-b border-gray-100 dark:border-gray-800/50 text-sm transition-colors',
-                                        record.es_problematico ? 'text-gray-400 dark:text-gray-500 bg-amber-50/10 dark:bg-amber-950/5' : 'text-gray-800 dark:text-white/90 hover:bg-gray-50 dark:hover:bg-gray-800/20'
+                                        esMarcacionProblematica(record) ? 'text-gray-400 dark:text-gray-500 bg-amber-50/10 dark:bg-amber-950/5' : 'text-gray-800 dark:text-white/90 hover:bg-gray-50 dark:hover:bg-gray-800/20'
                                     ]">
-                                        <!-- FECHA -->
                                         <td class="py-3 px-4 font-medium">{{ formatOnlyDate(record.date) }}</td>
-                                        
-                                        <!-- DEPARTAMENTO -->
                                         <td class="py-3 px-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate"
                                             :title="record.personInfo?.orgName">
                                             {{ formatDept(record.personInfo?.orgName) }}
                                         </td>
                                         
-                                        <!-- 1. ENTRADA (Horario Mañana: beginTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-green-600 dark:text-green-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
-                                            {{ record.entrada ? formatTimeOnly(record.entrada) : '—' }}
+                                        <!-- ENTRADA -->
+                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-green-600 dark:text-green-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
+                                            {{ 
+                                                String(record.attendanceBaseInfo?.beginTime).includes('T08:05:00') 
+                                                ? formatTimeOnly(record.attendanceDetailInfo?.recordTime?.[0]?.beginTime) 
+                                                : formatTimeOnly(record.attendanceBaseInfo?.beginTime) 
+                                            }}
                                         </td>
 
-                                        <!-- 2. SALIDA BREAK (Horario Mañana: endTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono text-amber-600 dark:text-amber-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
-                                            {{ record.salida_break ? formatTimeOnly(record.salida_break) : '—' }}
+                                        <!-- SALIDA BREAK (Calculada) | REGLA: Ocultar si duración < 1200s (20 min) -->
+                                        <td :class="['py-3 px-4 text-center font-mono text-amber-600 dark:text-amber-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
+                                            {{
+                                                (obtenerEntradaBreakValida(record) && record.restInfo?.durationTime >= 1200) 
+                                                ? calcularSalidaBreak(obtenerEntradaBreakValida(record), record.restInfo?.durationTime) 
+                                                : '—'
+                                            }}
                                         </td>
 
-                                        <!-- 3. ENTRADA BREAK (Horario Tarde: beginTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono text-brand-600 dark:text-brand-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
-                                            {{ record.entrada_break ? formatTimeOnly(record.entrada_break) : '—' }}
+                                        <!-- ENTRADA BREAK | REGLA: Ocultar si duración < 1200s (20 min) -->
+                                        <td :class="['py-3 px-4 text-center font-mono text-brand-600 dark:text-brand-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
+                                            {{ 
+                                                (obtenerEntradaBreakValida(record) && record.restInfo?.durationTime >= 1200) 
+                                                ? formatTimeOnly(obtenerEntradaBreakValida(record)) 
+                                                : '—' 
+                                            }}
                                         </td>
 
-                                        <!-- 4. SALIDA FINAL (Horario Tarde: endTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-red-600 dark:text-red-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
-                                            {{ record.salida ? formatTimeOnly(record.salida) : '—' }}
+                                        <!-- SALIDA FINAL -->
+                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-red-600 dark:text-red-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
+                                            {{ formatTimeOnly(record.attendanceBaseInfo?.endTime) }}
                                         </td>
 
-                                        <!-- ESTADOS (Apilados para mostrar el estado de la Mañana y de la Tarde) -->
+                                        <!-- ESTADO -->
                                         <td class="py-3 px-4 text-center whitespace-nowrap">
-                                            <div class="flex flex-col gap-1 items-center justify-center">
-                                                <span v-if="record.estado_manana" 
-                                                    :class="['px-2 py-0.5 text-[10px] font-semibold rounded-full border', obtenerEstiloEstado(record.estado_manana).class]">
-                                                    AM: {{ obtenerEstiloEstado(record.estado_manana).label }}
-                                                </span>
-                                                <span v-if="record.estado_tarde" 
-                                                    :class="['px-2 py-0.5 text-[10px] font-semibold rounded-full border', obtenerEstiloEstado(record.estado_tarde).class]">
-                                                    PM: {{ obtenerEstiloEstado(record.estado_tarde).label }}
-                                                </span>
-                                            </div>
+                                            <span
+                                                v-if="esMarcacionProblematica(record) && record.attendanceBaseInfo?.attendanceStatus === '4'"
+                                                class="px-2.5 py-1 text-xs font-semibold rounded-full border bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800">
+                                                Problema de Registro
+                                            </span>
+                                            <span v-else
+                                                :class="['px-2.5 py-1 text-xs font-semibold rounded-full border', obtenerEstiloEstado(record.attendanceBaseInfo?.attendanceStatus).class]">
+                                                {{ obtenerEstiloEstado(record.attendanceBaseInfo?.attendanceStatus).label }}
+                                            </span>
                                         </td>
 
-                                        <!-- HORAS TRABAJADAS (Suma total) -->
-                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-indigo-600 dark:text-indigo-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
-                                            {{ formatearSegundos(record.total_duracion) }}
+                                        <!-- HORAS TRABAJADAS -->
+                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-indigo-600 dark:text-indigo-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
+                                            {{ formatearSegundos(record.normalInfo?.durationTime) }}
+                                        </td>
+
+                                        <!-- TIEMPO BREAK | REGLA: Ocultar si duración < 1200s (20 min) -->
+                                        <td :class="['py-3 px-4 text-center font-mono text-teal-600 dark:text-teal-400', esMarcacionProblematica(record) ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
+                                            {{ 
+                                                (record.restInfo?.durationTime >= 1200)
+                                                ? formatearSegundos(record.restInfo?.durationTime)
+                                                : '—'
+                                            }}
                                         </td>
                                     </tr>
 
                                     <!-- FILA ADVERTENCIA -->
-                                    <tr v-if="record.es_problematico"
+                                    <tr v-if="esMarcacionProblematica(record) && record.attendanceBaseInfo?.attendanceStatus === '4'"
                                         class="bg-amber-50/40 dark:bg-amber-950/10 border-b border-gray-100 dark:border-gray-800/50">
-                                        <td colspan="8" class="py-2.5 px-4 text-xs text-amber-800 dark:text-amber-400 font-medium">
+                                        <td colspan="9" class="py-2.5 px-4 text-xs text-amber-800 dark:text-amber-400 font-medium">
                                             <div class="flex items-center gap-2">
                                                 <svg class="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                                 </svg>
                                                 <span>
-                                                    <strong>¡Advertencia!</strong> Se registró una ausencia en uno de los bloques. Verifique la asistencia de la institución.
+                                                    <strong>¡Advertencia!</strong> La asistencia no se guardó, verifique si es problema de conexión con el dispositivo o si el personal vino a la institución.
                                                 </span>
                                             </div>
                                         </td>
@@ -490,60 +509,6 @@ export default {
             datosLocales: [],
             mostrarTablaLocal: false,
         };
-    },
-    computed: {
-        asistenciasAgrupadas() {
-            const agrupado = {};
-
-            this.attendanceData.forEach(record => {
-                // Ignorar estado 7 (No programado)
-                if (String(record.attendanceBaseInfo?.attendanceStatus) === '7') return;
-
-                // Crear una llave única combinando ID de persona y fecha
-                const key = `${record.personInfo?.personID}_${record.date}`;
-
-                if (!agrupado[key]) {
-                    agrupado[key] = {
-                        personInfo: record.personInfo,
-                        date: record.date,
-                        entrada: null,        // Horario mañana (beginTime)
-                        salida_break: null,   // Horario mañana (endTime)
-                        entrada_break: null,  // Horario tarde (beginTime)
-                        salida: null,         // Horario tarde (endTime)
-                        estado_manana: null,
-                        estado_tarde: null,
-                        total_duracion: 0,
-                        es_problematico: false
-                    };
-                }
-
-                // Identificar si el bloque actual es de la mañana o tarde
-                const nombrePeriodo = record.planInfo?.periodName?.toLowerCase() || '';
-                const esManana = nombrePeriodo.includes('mañana');
-
-                if (esManana) {
-                    agrupado[key].entrada = record.attendanceDetailInfo?.recordTime?.[0]?.beginTime;
-                    agrupado[key].salida_break = record.attendanceDetailInfo?.recordTime?.[0]?.endTime;
-                    agrupado[key].estado_manana = record.attendanceBaseInfo?.attendanceStatus;
-                } else {
-                    // Si es el bloque de la tarde
-                    agrupado[key].entrada_break = record.attendanceDetailInfo?.recordTime?.[0]?.beginTime;
-                    agrupado[key].salida = record.attendanceDetailInfo?.recordTime?.[0]?.endTime;
-                    agrupado[key].estado_tarde = record.attendanceBaseInfo?.attendanceStatus;
-                }
-
-                // Sumar los segundos trabajados de ambos turnos
-                agrupado[key].total_duracion += Number(record.normalInfo?.durationTime || 0);
-
-                // Si cualquiera de los dos turnos marca Ausente (4), marcar la fila con advertencia
-                /*if (record.attendanceBaseInfo?.attendanceStatus === '4') {
-                    agrupado[key].es_problematico = true;
-                }*/
-            });
-
-            // Retornar un array limpio para el v-for
-            return Object.values(agrupado);
-        }
     },
     methods: {
         onlyNumbers(event) {
@@ -773,26 +738,24 @@ export default {
             }
         },
         async compararYRegistrar() {
-           this.mostrarTablaLocal = false;
+            this.mostrarTablaLocal = false;
             this.sincronizando = true;
 
-            // Usamos directamente 'asistenciasAgrupadas' que ya tiene la lógica de turnos resuelta
-            const marcacionesFormateadas = this.asistenciasAgrupadas.map(record => {
-                
-                // Obtenemos los labels de los estados para enviarlos como texto
-                const labelAM = record.estado_manana ? this.obtenerEstiloEstado(record.estado_manana).label : '';
-                const labelPM = record.estado_tarde ? this.obtenerEstiloEstado(record.estado_tarde).label : '';
-                
-                // Unimos los estados (ej. "Normal / Retraso") o definimos uno por defecto
-                const estadoFinal = [labelAM, labelPM].filter(Boolean).join(' / ') || 'Desconocido';
+            // 1. Filtramos los registros que sean estado 7 (No programado/Fin de semana)
+            const marcacionesValidas = this.attendanceData.filter(
+                record => String(record.attendanceBaseInfo?.attendanceStatus) !== '7'
+            );
 
+            // 2. Mapeamos los datos válidos incluyendo el estado
+            const marcacionesFormateadas = marcacionesValidas.map(record => {
                 return {
+                    // Se envía YYYY-MM-DD directo a Laravel para evitar errores de MySQL
                     fecha: record.date,
-                    hora_entrada: record.entrada || null,
-                    hora_almuerzo_salida: record.salida_break || null,
-                    hora_almuerzo_entrada: record.entrada_break || null,
-                    hora_salida: record.salida || null,
-                    estado_asistencia: estadoFinal 
+                    hora_entrada: record.attendanceBaseInfo?.beginTime || null,
+                    hora_almuerzo_salida: this.calcularSalidaBreak(record.attendanceDetailInfo?.recordTime?.[0]?.endTime, record.restInfo?.durationTime) || null,
+                    hora_almuerzo_entrada: record.attendanceDetailInfo?.recordTime?.[0]?.endTime || null,
+                    hora_salida: record.attendanceBaseInfo?.endTime || null,
+                    estado_asistencia: this.obtenerEstiloEstado(record.attendanceBaseInfo?.attendanceStatus).label || null // Enviamos el estado a Laravel
                 };
             });
 
@@ -804,14 +767,11 @@ export default {
                     marcaciones: marcacionesFormateadas
                 });
 
-                // Actualizamos los datos locales con la respuesta de la DB
+                // Guardamos los datos de la base de datos ya actualizados
                 this.datosFinales = response.data;
-                this.datosLocales = response.data; 
-                
+                console.log("Datos finales:", this.datosFinales);
                 mostraralertas2("Marcaciones comparadas y sincronizadas con éxito.", "success");
-                
                 this.existeEnDB = true;
-                this.mostrarTablaLocal = true; // Volvemos a mostrar la tabla inferior ya actualizada
 
             } catch (error) {
                 console.error("Error al sincronizar marcaciones:", error);

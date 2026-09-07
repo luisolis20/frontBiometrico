@@ -212,6 +212,7 @@ const menuData = [
         name: "Reporte de Asistencia",
         subItems: [
           { name: "Individual", path: "/asistencia", pro: false, new: true },
+          { name: "Individual Beta", path: "/asistencia-beta", pro: false, new: false },
           { name: "Masiva", path: "/asistencia-masiva", pro: false, new: true },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
         ],

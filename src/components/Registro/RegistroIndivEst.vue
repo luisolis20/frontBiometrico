@@ -125,7 +125,7 @@
                             <div>
                                 <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Nivel del
                                     periodo actual</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ formatNivel(estudianteData.nivel) }} Ciclo</p>
+                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ formatNivel(estudianteData.nivel) }}</p>
                             </div>
                             <div>
                                 <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Facultad</p>
@@ -167,14 +167,18 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-2">
-                            <span v-if="cargandoStatus" class="text-xs text-gray-400">Verificando en
-                                HikCentral...</span>
+                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                            <!-- Badge Status Registro HikCentral -->
+                            <span v-if="cargandoStatus" class="text-xs text-gray-400">
+                                Verificando en HikCentral...
+                            </span>
                             <span v-else
                                 :class="estaRegistrado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
                                 class="px-2 py-1 rounded-md text-xs font-bold uppercase">
                                 {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
                             </span>
+
+                            
                         </div>
                         <div v-if="comparando" class="text-xs text-green-500 animate-pulse mt-2">
                             Calculando similitud facial...
@@ -208,6 +212,50 @@
                                 clip-rule="evenodd" />
                         </svg>
                         Información Sincronizada y Validada
+                    </div>
+                </div>
+                <!-- NUEVA SECCIÓN: Gestión de Acceso al Gimnasio -->
+                <div v-if="estaRegistrado" class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
+                    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div class="w-full">
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-4">
+                                Gestión de Acceso Especiales
+                            </h4>
+                            
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 dark:bg-gray-800/50 dark:border-gray-700 gap-4">
+                                <div class="flex items-center gap-4">
+                                    <div :class="tieneAccesoGym ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30'" class="p-3 rounded-lg">
+                                        <!-- Ícono de Pesa/Gimnasio -->
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 6v12m14-12v12M8 8v8m8-8v8"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-800 dark:text-white/90">Gimnasio</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ tieneAccesoGym ? 'El estudiante tiene acceso activo al gimnasio.' : 'El estudiante no tiene acceso al gimnasio.' }}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Botones dinámicos basados en tieneAccesoGym -->
+                                <div class="w-full sm:w-auto">
+                                    <button v-if="!tieneAccesoGym" 
+                                        @click="agregarAccesoGym" 
+                                        :disabled="cargandoAccesoGym"
+                                        class="flex w-full sm:w-auto justify-center items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 shadow-sm transition-all disabled:opacity-50">
+                                        Agregar Nivel de Acceso
+                                    </button>
+
+                                    <button v-else 
+                                        @click="quitarAccesoGym" 
+                                        :disabled="cargandoAccesoGym"
+                                        class="flex w-full sm:w-auto justify-center items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 shadow-sm transition-all disabled:opacity-50">
+                                        Quitar Nivel de Acceso
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -254,7 +302,7 @@
                                 el periodo seleccionado.</li>
                             <li>Verifique si el alumno dispone de una <strong>fotografía activa</strong> cargada en el
                                 SIAD.</li>
-                            <li>El estudiante no sea de admisión y nivelación</li>
+                            <li>El estudiante no haya graduado hace más de 1 año</li>
                         </ul>
                     </div>
                 </div>
@@ -304,7 +352,9 @@ export default {
             comparacionResultado: null,
             personIdHC: null,
             errorValidacion: false,
-            errorValidacionTexto: ""
+            errorValidacionTexto: "",
+            tieneAccesoGym: false,
+            cargandoAccesoGym: false,
         };
     },
     watch: {
@@ -333,22 +383,67 @@ export default {
     },
     mounted() {
         this.cargarPeriodos();
+        this.obtenerNivelesdeAcceso();
     },
     methods: {
+        async verificarAccesoGym() {
+            if (!this.personIdHC) {
+                this.tieneAccesoGym = false;
+                return;
+            }
+
+            this.cargandoAccesoGym = true;
+            this.tieneAccesoGym = false;
+
+            const maxPages = 16;
+            const pageSize = 500;
+
+            try {
+                for (let page = 1; page <= maxPages; page++) {
+                    const response = await API.get(`${this.baseUrl}/get-access-person`, {
+                        params: { pageNo: page }
+                    });
+
+                    const listaPersonas = response.data?.data?.list || response.data?.list || [];
+
+                    // 1. Validar si la persona está en la página actual
+                    const encontrado = listaPersonas.some(
+                        item => String(item.id) === String(this.personIdHC)
+                    );
+
+                    if (encontrado) {
+                        this.tieneAccesoGym = true;
+                        break; // Se encontró la persona, detiene la búsqueda inmediatamente
+                    }
+
+                    // 2. Si la cantidad devuelta es menor al pageSize (500), ya no hay más páginas que consultar
+                    if (listaPersonas.length < pageSize) {
+                        break;
+                    }
+                }
+            } catch (error) {
+                console.error("❌ Error al verificar nivel de acceso Gimnasio:", error);
+                this.tieneAccesoGym = false;
+            } finally {
+                this.cargandoAccesoGym = false;
+            }
+        },
         formatNivel(nivel) {
             const n = parseInt(nivel);
             if (isNaN(n)) return nivel;
             switch (n) {
-                case 1: return '1er';
-                case 2: return '2do';
-                case 3: return '3er';
-                case 4: return '4to';
-                case 5: return '5to';
-                case 6: return '6to';
-                case 7: return '7mo';
-                case 8: return '8vo';
-                case 9: return '9no';
-                case 10: return '10mo';
+                case 1: return '1er Ciclo';
+                case 2: return '2do Ciclo';
+                case 3: return '3er Ciclo';
+                case 4: return '4to Ciclo';
+                case 5: return '5to Ciclo';
+                case 6: return '6to Ciclo';
+                case 7: return '7mo Ciclo';
+                case 8: return '8vo Ciclo';
+                case 9: return '9no Ciclo';
+                case 10: return '10mo Ciclo';
+                case 'Egresado': return 'Egresado';
+                case 'Graduado': return 'Graduado';
                 default: return `${n}vo`;
             }
         },
@@ -381,6 +476,16 @@ export default {
                 }
             } catch (error) {
                 console.error("Error al cargar periodos:", error);
+            }
+        },
+        async obtenerNivelesdeAcceso() {
+            try {
+                const response = await API.get(`${this.baseUrl}/get-access-levels`);
+                const response2 = await API.get(`${this.baseUrl}/get-access-person`);
+                console.log("✅ Niveles de acceso obtenidos:", response);
+                console.log("✅ Personas con acceso obtenidas:", response2);
+            } catch (error) {
+                console.error("❌ Error al obtener niveles de acceso:", error);
             }
         },
         async buscarEstudiante() {
@@ -425,6 +530,9 @@ export default {
                     await this.verificarRegistroHC(this.estudianteData.CIInfPer);
                     if (this.estaRegistrado) {
                         await this.ejecutarComparacion(this.estudianteData.CIInfPer);
+                        await this.verificarAccesoGym();
+                    }else {
+                        this.tieneAccesoGym = false;
                     }
                 }
             } catch (error) {
@@ -438,13 +546,104 @@ export default {
             this.cargandoStatus = true;
             try {
                 const response = await API.get(`${this.baseUrl}/getperson-est/${ci}`);
+                
                 this.personIdHC = response.data.personId;
+                console.log(this.personIdHC);
                 this.estaRegistrado = response.data.registrado;
 
             } catch (error) {
                 this.estaRegistrado = false;
             } finally {
                 this.cargandoStatus = false;
+            }
+        },
+        async agregarAccesoGym() {
+            if (!this.personIdHC) return;
+
+            const result = await Swal.fire({
+                title: '¿Asignar acceso al Gimnasio?',
+                text: "Se otorgará el nivel de acceso en HikCentral.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6', // Color tipo brand
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, agregar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Asignando nivel de acceso...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    const response = await API.post(`${this.baseUrl}/add_level_access_gym`, {
+                        personID: this.personIdHC
+                    });
+
+                    if (response.data && response.data.code == "0") {
+                        this.tieneAccesoGym = true; // Actualiza reactivamente la interfaz
+                        Swal.fire({
+                            title: '¡Acceso Otorgado!',
+                            text: 'El estudiante ahora tiene acceso al gimnasio.',
+                            icon: 'success',
+                            confirmButtonColor: '#10b981'
+                        });
+                    } else {
+                        Swal.fire('Error', response.data.msg || 'No se pudo asignar el nivel.', 'error');
+                    }
+                } catch (error) {
+                    console.error("Error al asignar acceso:", error);
+                    Swal.fire('Error', 'Ocurrió un error en la comunicación con el servidor.', 'error');
+                }
+            }
+        },
+
+        async quitarAccesoGym() {
+            if (!this.personIdHC) return;
+
+            const result = await Swal.fire({
+                title: '¿Remover acceso al Gimnasio?',
+                text: "El estudiante perderá el acceso a esta área en HikCentral.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444', // Rojo para peligro
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, quitar acceso',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Removiendo nivel de acceso...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    const response = await API.post(`${this.baseUrl}/remove_level_access_gym`, {
+                        personID: this.personIdHC
+                    });
+
+                    if (response.data && response.data.code == "0") {
+                        this.tieneAccesoGym = false; // Actualiza reactivamente la interfaz
+                        Swal.fire({
+                            title: '¡Acceso Removido!',
+                            text: 'Se ha quitado el acceso al gimnasio correctamente.',
+                            icon: 'success',
+                            confirmButtonColor: '#10b981'
+                        });
+                    } else {
+                        Swal.fire('Error', response.data.msg || 'No se pudo remover el nivel.', 'error');
+                    }
+                } catch (error) {
+                    console.error("Error al remover acceso:", error);
+                    Swal.fire('Error', 'Ocurrió un error en la comunicación con el servidor.', 'error');
+                }
             }
         },
         async ejecutarComparacion(ci) {
