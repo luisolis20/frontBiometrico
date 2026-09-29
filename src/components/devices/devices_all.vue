@@ -148,6 +148,10 @@ export default {
       try {
         // Petición al backend CON filtros incluidos
         const response = await API.get(`${this.baseUrl}/devices`);
+        const response2 = await API.get(`${this.baseUrl}/get-information-door`);
+
+        console.log("✅ Datos recibidos del backend:", response);
+        console.log("✅ Datos recibidos del backend:", response2);
         this.datadevice = response.data.data.list || [];
       } catch (error) {
         console.warn("⚠️ Error al obtener datos:", error?.response?.data || error);

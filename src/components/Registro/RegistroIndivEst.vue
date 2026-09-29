@@ -258,6 +258,84 @@
                         </div>
                     </div>
                 </div>
+                <!-- NUEVA SECCIÓN: Historial de Accesos del Día -->
+                <div v-if="estaRegistrado"
+                   class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
+                    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div class="w-full">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                                    Accesos de Hoy
+                                </h4>
+                                <button @click="obtenerEventosPuerta" :disabled="cargandoEventos"
+                                    class="text-sm text-brand-500 hover:text-brand-600">
+                                    <svg v-if="cargandoEventos" class="w-5 h-5 animate-spin" fill="none"
+                                        viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div v-if="cargandoEventos"
+                                class="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
+                                Consultando marcaciones en HikCentral...
+                            </div>
+
+                            <div v-else-if="!eventosPuerta || eventosPuerta.length === 0"
+                                class="text-sm text-gray-500 dark:text-gray-400 py-4 text-center bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                                No se registran accesos en el día de hoy.
+                            </div>
+
+                            <div v-else class="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700">
+                                <table class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                    <thead
+                                        class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 font-semibold">Hora de Marcación</th>
+                                            <th scope="col" class="px-6 py-3 font-semibold">Puerta / Lector</th>
+                                            <th scope="col" class="px-6 py-3 font-semibold text-center">Captura Facial
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(evento, index) in eventosPuerta" :key="index"
+                                            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <!-- Hora corregida desde eventTime -->
+                                            <td
+                                                class="px-6 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                                {{ formatearHora(evento.eventTime) }}
+                                            </td>
+                                            <!-- Nombre de la puerta -->
+                                            <td class="px-6 py-3">
+                                                {{ evento.doorName || 'Puerta Desconocida' }}
+                                            </td>
+                                            <!-- Captura Facial tomada por el dispositivo -->
+                                            <td class="px-6 py-3 text-center">
+                                                <div v-if="evento.picUri" class="flex justify-center items-center">
+                                                    <img :src="getPhotoUrl23(evento.picUri)"
+                                                        alt="Captura de rostro"
+                                                        class="w-12 h-12 object-cover rounded-lg border border-gray-200 shadow-sm hover:scale-110 transition-transform cursor-pointer"
+                                                        title="Haz clic para ampliar" />
+                                                </div>
+                                                <span v-else class="text-xs text-gray-400 italic">
+                                                    Tarjeta / Sin Captura
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -355,6 +433,8 @@ export default {
             errorValidacionTexto: "",
             tieneAccesoGym: false,
             cargandoAccesoGym: false,
+            eventosPuerta: [],
+            cargandoEventos: false,
         };
     },
     watch: {
@@ -463,6 +543,11 @@ export default {
             // Añadimos un timestamp para evitar que el navegador use la versión cacheada
             return `${baseURL2}/biometrico/gethick/${ci}?t=${new Date().getTime()}`;
         },
+        getPhotoUrl23(picUri) {
+            if (!picUri) return '';
+            const baseURL2 = API.defaults.baseURL;
+            return `${baseURL2}/biometrico/gethickVer?picUri=${encodeURIComponent(picUri)}&t=${new Date().getTime()}`;
+        },
         // 1. Cargar los 2 periodos (activo y anterior)
         async cargarPeriodos() {
             try {
@@ -531,8 +616,10 @@ export default {
                     if (this.estaRegistrado) {
                         await this.ejecutarComparacion(this.estudianteData.CIInfPer);
                         await this.verificarAccesoGym();
+                        await this.obtenerEventosPuerta();
                     }else {
                         this.tieneAccesoGym = false;
+                        this.eventosPuerta = [];
                     }
                 }
             } catch (error) {
@@ -541,6 +628,50 @@ export default {
             } finally {
                 this.cargando = false;
             }
+        },
+        async obtenerEventosPuerta() {
+            if (!this.estudianteData || !this.personIdHC) return;
+
+            this.cargandoEventos = true;
+            this.eventosPuerta = [];
+
+            try {
+                // Obtener la fecha de hoy en formato YYYY-MM-DD
+                const hoy = new Date().toISOString().split('T')[0];
+
+                const payload = {
+                    personCode: this.estudianteData.CIInfPer,
+                    personID: this.personIdHC,
+                    startTime: hoy,
+                    endTime: hoy,
+                    doorCode: '386' // Opcional, puedes omitirlo si el backend usa 386 por defecto
+                };
+
+                // Cambia esta URL a la ruta real de tu backend Laravel
+                const response = await API.post(`${this.baseUrl}/eventos-puerta-asistencia`, payload);
+                console.log("✅ Eventos obtenidos:", response);
+                // HikCentral (Artemis) devuelve los arreglos dentro de data.list
+                if (response.data && response.data.data && response.data.data.list) {
+                    this.eventosPuerta = response.data.data.list;
+                }
+            } catch (error) {
+                console.error("❌ Error al obtener eventos de HikCentral:", error);
+            } finally {
+                this.cargandoEventos = false;
+            }
+        },
+
+        formatearHora(fechaIso) {
+            if (!fechaIso) return '-';
+            const fecha = new Date(fechaIso);
+            
+            // Retorna Hora:Minuto:Segundo (ej: 02:07:43 PM)
+            return fecha.toLocaleTimeString('es-EC', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
         },
         async verificarRegistroHC(ci) {
             this.cargandoStatus = true;
