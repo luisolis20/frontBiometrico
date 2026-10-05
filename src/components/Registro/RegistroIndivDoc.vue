@@ -349,7 +349,7 @@ export default {
             this.cargandoStatus = true;
             try {
                 const response = await API.get(`${this.baseUrl}/getperson/${ci}`);
-                console.log("✅ Estado de registro en HikCentral:", response);
+                //console.log("✅ Estado de registro en HikCentral:", response);
                  this.personIdHC = response.data.personId;
                 this.estaRegistrado = response.data.registrado;
             } catch (error) {
@@ -362,7 +362,7 @@ export default {
             this.cargandoStatus = true;
             try {
                 const response = await API.get(`${this.baseUrl}/delete-hikdoc/${ci}`);
-                console.log("✅ Eliminado de HikCentral:", response);
+                //console.log("✅ Eliminado de HikCentral:", response);
                 this.estaRegistrado = false;
             } catch (error) {
                 this.estaRegistrado = false;
@@ -379,9 +379,9 @@ export default {
                this.comparacionResultado = data;
                 if (data.identicas) {
                     // Usar un alert o notificación con el porcentaje
-                    console.log(`✅ Match: ${data.similitud}%`);
+                    //console.log(`✅ Match: ${data.similitud}%`);
                 } else {
-                    console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+                    //console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
                 }
             } catch (error) {
                 mostraralertas2("Error en la comparación", "error");

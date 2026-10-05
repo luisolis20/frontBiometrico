@@ -739,7 +739,7 @@ export default {
                     beginTime: this.beginTime,
                     endTime: this.endTime
                 });
-                console.log("Respuesta de asistencia:", response);
+                //console.log("Respuesta de asistencia:", response);
                 // HikCentral normalmente devuelve la lista de registros dentro de data.data.list
                 if (response.data && response.data.data && response.data.data.record) {
                     this.attendanceData = response.data.data.record;
@@ -762,7 +762,7 @@ export default {
                     beginTime: this.beginTime,
                     endTime: this.endTime
                 });
-                console.log("Respuesta verificación DB local:", res);
+                //console.log("Respuesta verificación DB local:", res);
                 this.existeEnDB = res.data.exists;
                 this.datosLocales = res.data.data || [];
 

@@ -624,7 +624,7 @@ export default {
           const res = await API.get(`${this.baseUrl}/getperson/${post.CIInfPer}`);
           post.estaRegistradoHC = res.data.registrado;
           post.personIdHC = res.data.personId || null;
-          console.log(`CI ${post.CIInfPer}: Registrado en HC = ${post.estaRegistradoHC}`);
+          //console.log(`CI ${post.CIInfPer}: Registrado en HC = ${post.estaRegistradoHC}`);
 
         } catch (e) {
           post.estaRegistradoHC = false;

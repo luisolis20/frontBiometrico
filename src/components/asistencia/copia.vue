@@ -704,7 +704,7 @@ export default {
                     beginTime: this.beginTime,
                     endTime: this.endTime
                 });
-                console.log("Respuesta de asistencia:", response);
+                //console.log("Respuesta de asistencia:", response);
                 // HikCentral normalmente devuelve la lista de registros dentro de data.data.list
                 if (response.data && response.data.data && response.data.data.record) {
                     this.attendanceData = response.data.data.record;
@@ -727,7 +727,7 @@ export default {
                     beginTime: this.beginTime,
                     endTime: this.endTime
                 });
-                console.log("Respuesta verificación DB local:", res);
+                //console.log("Respuesta verificación DB local:", res);
                 this.existeEnDB = res.data.exists;
                 this.datosLocales = res.data.data || [];
 
@@ -769,7 +769,7 @@ export default {
 
                 // Guardamos los datos de la base de datos ya actualizados
                 this.datosFinales = response.data;
-                console.log("Datos finales:", this.datosFinales);
+                //console.log("Datos finales:", this.datosFinales);
                 mostraralertas2("Marcaciones comparadas y sincronizadas con éxito.", "success");
                 this.existeEnDB = true;
 

@@ -712,7 +712,7 @@ export default {
 
             if (visitaActual) visitas.push(visitaActual);
             this.visitasProcesadas = visitas.reverse(); // Mostrar los más recientes arriba
-            console.log("✅ Visitas procesadas:", this.visitasProcesadas);
+            //console.log("✅ Visitas procesadas:", this.visitasProcesadas);
         },
         async obtenerEventosPuerta() {
             if (!this.estudianteData || !this.personIdHC) return;
@@ -728,7 +728,7 @@ export default {
                     endTime: this.fechaFin
                 };
                 const response = await API.post(`${this.baseUrl}/eventos-puerta-asistencia`, payload);
-                console.log("✅ Eventos obtenidos:", response);
+                //console.log("✅ Eventos obtenidos:", response);
                 if (response.data?.data?.list) {
                     // En vez de mostrar la lista cruda, la procesamos
                     this.procesarMarcacionesAgrupadas(response.data.data.list);
@@ -760,8 +760,8 @@ export default {
             try {
                 const response = await API.get(`${this.baseUrl}/get-access-levels`);
                 const response2 = await API.get(`${this.baseUrl}/get-access-person`);
-                console.log("✅ Niveles de acceso obtenidos:", response);
-                console.log("✅ Personas con acceso obtenidas:", response2);
+                /*console.log("✅ Niveles de acceso obtenidos:", response);
+                console.log("✅ Personas con acceso obtenidas:", response2);*/
             } catch (error) {
                 console.error("❌ Error al obtener niveles de acceso:", error);
             }
@@ -842,7 +842,7 @@ export default {
                 const response = await API.get(`${this.baseUrl}/getperson-est/${ci}`);
                 
                 this.personIdHC = response.data.personId;
-                console.log(this.personIdHC);
+                //console.log(this.personIdHC);
                 this.estaRegistrado = response.data.registrado;
 
             } catch (error) {
@@ -948,9 +948,9 @@ export default {
                 this.comparacionResultado = data;
                 if (data.identicas) {
                     // Usar un alert o notificación con el porcentaje
-                    console.log(`✅ Match: ${data.similitud}%`);
+                    //console.log(`✅ Match: ${data.similitud}%`);
                 } else {
-                    console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
+                    //console.log(`❌ Diferentes: Solo ${data.similitud} de parecido.`);
                 }
             } catch (error) {
                 mostraralertas2("Error en la comparación", "error");
