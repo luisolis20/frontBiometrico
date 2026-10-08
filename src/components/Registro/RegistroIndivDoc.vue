@@ -121,7 +121,7 @@
 
                 </div>
             </div>
-           <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                     <div class="w-full">
                         <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Información
@@ -192,6 +192,123 @@
                                 clip-rule="evenodd" />
                         </svg>
                         Información Sincronizada y Validada
+                    </div>
+                </div>
+                <div v-if="estaRegistrado" class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
+                    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div class="w-full">
+                            <!-- Filtros de Fecha -->
+                            <div
+                                class="flex flex-col md:flex-row items-end gap-4 mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl">
+                                <div class="flex-1 w-full">
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Rango
+                                        Rápido</label>
+                                    <select v-model="filtroSeleccionado" @change="aplicarFiltroFecha"
+                                        :disabled="cargandoEventos"
+                                        class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90">
+                                        <option value="custom">Personalizado</option>
+                                        <option value="hoy">Hoy</option>
+                                        <option value="ayer">Ayer</option>
+                                        <option value="esta_semana">Esta semana (Lun - Vie)</option>
+                                        <option value="mes_actual">Mes actual</option>
+                                        <option value="mes_anterior">Mes anterior</option>
+                                    </select>
+                                </div>
+
+                                <div class="flex-1 w-full">
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Fecha
+                                        de Inicio</label>
+                                    <input type="date" v-model="fechaInicio" @change="filtroSeleccionado = 'custom'"
+                                        :disabled="cargandoEventos"
+                                        class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90" />
+                                </div>
+
+                                <div class="flex-1 w-full">
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Fecha
+                                        de Fin</label>
+                                    <input type="date" v-model="fechaFin" @change="filtroSeleccionado = 'custom'"
+                                        :disabled="cargandoEventos"
+                                        class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90" />
+                                </div>
+
+                                <button @click="obtenerEventosPuerta" :disabled="cargandoEventos"
+                                    class="h-11 px-6 rounded-lg flex items-center justify-center gap-2 bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brand-500 dark:hover:bg-brand-600 w-full md:w-auto">
+                                    <svg v-if="cargandoEventos" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    <span>{{ cargandoEventos ? 'Consultando...' : 'Consultar' }}</span>
+                                </button>
+                            </div>
+
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Registro de Accesos GYM
+                            </h4>
+
+                            <div v-if="cargandoEventos" class="text-sm text-gray-500 py-4 text-center">Consultando
+                                marcaciones...</div>
+                            <div v-else-if="!visitasProcesadas.length"
+                                class="text-sm text-gray-500 py-4 text-center bg-gray-50 rounded-lg">No se registran
+                                accesos en este periodo.</div>
+
+                            <!-- Visitas Agrupadas -->
+                            <div v-else class="grid grid-cols-1 gap-4">
+                                <div v-for="(visita, index) in visitasProcesadas" :key="index"
+                                    class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm gap-4">
+
+                                    <!-- Estado / Alertas -->
+                                    <div class="w-full sm:w-1/4">
+                                        <span :class="{
+                                            'bg-green-100 text-green-700': visita.estado === 'Completado' || visita.estado === 'En gimnasio',
+                                            'bg-red-100 text-red-700': visita.estado === 'Bloqueado (Anti-passback)',
+                                            'bg-yellow-100 text-yellow-700': visita.estado === 'Alerta: Doble Entrada'
+                                        }" class="px-3 py-1 rounded-full text-xs font-bold inline-block mb-2">
+                                            {{ visita.estado }}
+                                        </span>
+                                        <p class="text-xs text-gray-500">{{ visita.fecha }}</p>
+                                    </div>
+
+                                    <!-- Datos de Entrada -->
+                                    <div
+                                        class="w-full sm:w-1/3 flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                                        <div class="flex-shrink-0">
+                                            <img v-if="visita.entrada?.foto" :src="getPhotoUrl23(visita.entrada.foto)"
+                                                @error="$event.target.style.display = 'none'"
+                                                class="w-12 h-12 rounded-lg object-cover border" title="Foto Entrada" />
+                                            <div v-else
+                                                class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">
+                                                N/A</div>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-gray-500 uppercase">Entrada</p>
+                                            <p class="text-sm font-bold text-gray-800 dark:text-white">{{ visita.entrada
+                                                ? visita.entrada.hora : '--:--' }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Datos de Salida -->
+                                    <div
+                                        class="w-full sm:w-1/3 flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                                        <div class="flex-shrink-0">
+                                            <img v-if="visita.salida?.foto" :src="getPhotoUrl23(visita.salida.foto)"
+                                                @error="$event.target.style.display = 'none'"
+                                                class="w-12 h-12 rounded-lg object-cover border" title="Foto Salida" />
+                                            <div v-else
+                                                class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">
+                                                N/A</div>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-gray-500 uppercase">Salida</p>
+                                            <p class="text-sm font-bold text-gray-800 dark:text-white">{{ visita.salida
+                                                ? visita.salida.hora : '--:--' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -284,7 +401,13 @@ export default {
             comparacionResultado: null,
             personIdHC: null,
             errorValidacion: false,
-            errorValidacionTexto: ""
+            errorValidacionTexto: "",
+            eventosPuerta: [],
+            cargandoEventos: false,
+            filtroSeleccionado: 'hoy',
+            fechaInicio: '',
+            fechaFin: '',
+            visitasProcesadas: []
         };
     },
     methods: {
@@ -302,6 +425,154 @@ export default {
         getPhotoUrl2(ci) {
             const baseURL2 = API.defaults.baseURL
             return `${baseURL2}/biometrico/gethick/${ci}?t=${new Date().getTime()}`;
+        },
+        getPhotoUrl23(picUri) {
+            if (!picUri) return '';
+            const baseURL2 = API.defaults.baseURL;
+           return `${baseURL2}/biometrico/gethickVer?picUri=${encodeURIComponent(picUri)}`;
+        },
+        aplicarFiltroFecha() {
+            if (this.filtroSeleccionado === 'custom') return;
+
+            const hoy = new Date();
+
+            const formatoFecha = (fecha) => {
+                const d = new Date(fecha);
+                let mes = '' + (d.getMonth() + 1);
+                let dia = '' + d.getDate();
+                const anio = d.getFullYear();
+
+                if (mes.length < 2) mes = '0' + mes;
+                if (dia.length < 2) dia = '0' + dia;
+
+                return [anio, mes, dia].join('-');
+            };
+
+            if (this.filtroSeleccionado === 'hoy') {
+                this.fechaInicio = formatoFecha(hoy);
+                this.fechaFin = formatoFecha(hoy);
+
+            } else if (this.filtroSeleccionado === 'ayer') {
+                const ayer = new Date(hoy);
+                ayer.setDate(hoy.getDate() - 1);
+                this.fechaInicio = formatoFecha(ayer);
+                this.fechaFin = formatoFecha(ayer);
+
+            } else if (this.filtroSeleccionado === 'esta_semana') {
+                const diaSemana = hoy.getDay();
+                const distanciaLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+                const lunes = new Date(hoy);
+                lunes.setDate(hoy.getDate() + distanciaLunes);
+
+                const distanciaViernes = diaSemana === 0 ? -2 : 5 - diaSemana;
+                const viernes = new Date(hoy);
+                viernes.setDate(hoy.getDate() + distanciaViernes);
+
+                this.fechaInicio = formatoFecha(lunes);
+                this.fechaFin = formatoFecha(viernes);
+
+            } else if (this.filtroSeleccionado === 'mes_actual') {
+                const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+                this.fechaInicio = formatoFecha(primerDiaMes);
+                this.fechaFin = formatoFecha(ultimoDiaMes);
+
+            } else if (this.filtroSeleccionado === 'mes_anterior') {
+                const primerDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+                const ultimoDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+                this.fechaInicio = formatoFecha(primerDiaMesAnterior);
+                this.fechaFin = formatoFecha(ultimoDiaMesAnterior);
+            }
+        },
+        procesarMarcacionesAgrupadas(eventosCrudos) {
+            // Ordenar cronológicamente
+            let eventos = [...eventosCrudos].sort((a, b) => new Date(a.eventTime) - new Date(b.eventTime));
+
+            // Paso 1: Agrupar el Facial con su Controladora respectiva
+            let intentos = [];
+            eventos.forEach(ev => {
+                if (ev.doorName.includes('FACIAL')) {
+                    intentos.push({
+                        facial: ev,
+                        controladora: null,
+                        tipo: ev.doorName.includes('E-D') ? 'Entrada' : 'Salida',
+                        fechaBase: ev.eventTime.split('T')[0]
+                    });
+                } else if (ev.doorName.includes('CONTROLADORA')) {
+                    let ultimoIntento = intentos[intentos.length - 1];
+                    // Si hay un evento facial previo sin controladora asignada, se lo asignamos
+                    if (ultimoIntento && !ultimoIntento.controladora) {
+                        ultimoIntento.controladora = ev;
+                    }
+                }
+            });
+
+            // Paso 2: Crear las "Visitas" (Entrada + Salida) y aplicar reglas
+            let visitas = [];
+            let visitaActual = null;
+
+            intentos.forEach(intento => {
+                let horaExacta = this.formatearHora(intento.controladora ? intento.controladora.eventTime : intento.facial.eventTime);
+                let accesoPermitido = !!intento.controladora; // Si hay controladora, entró. Si no, anti-passback.
+
+                if (intento.tipo === 'Entrada') {
+                    if (visitaActual && !visitaActual.salida && accesoPermitido) {
+                        visitaActual.estado = 'Alerta: Doble Entrada'; // Entró de nuevo sin haber salido antes
+                        visitas.push(visitaActual);
+                    }
+                    if (visitaActual && visitaActual.salida) visitas.push(visitaActual);
+
+                    visitaActual = {
+                        fecha: intento.fechaBase,
+                        entrada: { hora: horaExacta, foto: intento.facial.picUri },
+                        salida: null,
+                        estado: accesoPermitido ? 'En gimnasio' : 'Bloqueado (Anti-passback)'
+                    };
+
+                    // Si fue bloqueado, cerramos la visita de inmediato
+                    if (!accesoPermitido) {
+                        visitas.push(visitaActual);
+                        visitaActual = null;
+                    }
+                } else if (intento.tipo === 'Salida') {
+                    if (visitaActual) {
+                        visitaActual.salida = { hora: horaExacta, foto: intento.facial.picUri };
+                        visitaActual.estado = 'Completado';
+                        visitas.push(visitaActual);
+                        visitaActual = null;
+                    }
+                }
+            });
+
+            if (visitaActual) visitas.push(visitaActual);
+            this.visitasProcesadas = visitas.reverse(); // Mostrar los más recientes arriba
+            //console.log("✅ Visitas procesadas:", this.visitasProcesadas);
+        },
+        async obtenerEventosPuerta() {
+            if (!this.docenteData || !this.personIdHC) return;
+            this.cargandoEventos = true;
+
+            if (!this.fechaInicio) this.aplicarFiltroFecha();
+
+            try {
+                const payload = {
+                    personCode: this.docenteData.CIInfPer,
+                    startTime: this.fechaInicio, 
+                    endTime: this.fechaFin
+                };
+                const response = await API.post(`${this.baseUrl}/eventos-puerta-asistencia`, payload);
+                //console.log("✅ Eventos obtenidos:", response);
+                if (response.data?.data?.list) {
+                    // En vez de mostrar la lista cruda, la procesamos
+                    this.procesarMarcacionesAgrupadas(response.data.data.list);
+                } else {
+                    this.visitasProcesadas = [];
+                }
+            } catch (error) {
+                console.error("Error consultando HikCentral:", error);
+            } finally {
+                this.cargandoEventos = false;
+            }
         },
         async buscarDocente() {
             this.errorValidacion = false;
@@ -321,7 +592,8 @@ export default {
 
             this.cargando = true;
             this.docenteData = null;
-             this.comparacionResultado = null; // Limpiar previo
+            this.comparacionResultado = null; // Limpiar previo
+            this.visitasProcesadas = [];
 
             try {
                 // Llamada al método individual con caché que creamos en Laravel
@@ -332,8 +604,12 @@ export default {
                     this.estencontrado = true;
                     this.docenteData = response.data;
                     await this.verificarRegistroHC(this.docenteData.CIInfPer);
+                    
                     if (this.estaRegistrado) {
                         await this.ejecutarComparacion(this.docenteData.CIInfPer);
+                        await this.obtenerEventosPuerta();
+                    }else{
+                        this.visitasProcesadas = [];
                     }
                 }
 
@@ -344,6 +620,18 @@ export default {
             } finally {
                 this.cargando = false;
             }
+        },
+        formatearHora(fechaIso) {
+            if (!fechaIso) return '-';
+            const fecha = new Date(fechaIso);
+            
+            // Retorna Hora:Minuto:Segundo (ej: 02:07:43 PM)
+            return fecha.toLocaleTimeString('es-EC', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
         },
         async verificarRegistroHC(ci) {
             this.cargandoStatus = true;
@@ -460,7 +748,7 @@ export default {
             }
            const confirmacion = await Swal.fire({
                 title: '¿Actualizar Fotografía?',
-                text: `¿Deseas reemplazar la foto actual de ${this.estudianteData?.NombInfPer || post} en HikCentral?`,
+                text: `¿Deseas reemplazar la foto actual de ${this.docenteData?.NombInfPer || post} en HikCentral?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#126E1B',

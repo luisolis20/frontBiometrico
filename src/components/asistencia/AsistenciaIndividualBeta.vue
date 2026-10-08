@@ -26,7 +26,8 @@
             posee una foto o está habilitado.
         </div>
         <div v-else-if="!personaData && !cargando" class="text-sm text-gray-500 dark:text-gray-400">
-            Ingrese la cédula del personal para ver su información y sus marcaciones en HikCentral (dispositivos de reconocimiento facial).
+            Ingrese la cédula del personal para ver su información y sus marcaciones en HikCentral (dispositivos de
+            reconocimiento facial).
         </div>
 
         <div v-if="personaData && estencontrado">
@@ -85,7 +86,7 @@
                                 <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Correo
                                     Institucional</p>
                                 <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ personaData.mailInst
-                                    }}</p>
+                                }}</p>
                             </div>
                             <div>
                                 <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Tipo de personal
@@ -133,11 +134,6 @@
                 <h4 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
                     Reporte de Asistencia HIKCENTRAL
                 </h4>
-                <div
-                    class="p-4 mb-4 text-sm text-amber-800 rounded-lg bg-amber-50 dark:bg-gray-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                    <span class="font-bold">¡Atención!</span> Si la hora de entrada dice 08:05 significa que el personal
-                    llegó tarde y superó el límite de asistencia.
-                </div>
 
                 <div class="flex flex-col gap-4 mt-4 mb-6 md:flex-row md:items-end">
                     <div class="flex-1">
@@ -207,75 +203,72 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <template v-for="(record, index) in asistenciasAgrupadas" :key="index">
-                                    <tr :class="[
-                                        'border-b border-gray-100 dark:border-gray-800/50 text-sm transition-colors',
-                                        record.es_problematico ? 'text-gray-400 dark:text-gray-500 bg-amber-50/10 dark:bg-amber-950/5' : 'text-gray-800 dark:text-white/90 hover:bg-gray-50 dark:hover:bg-gray-800/20'
-                                    ]">
-                                        <!-- FECHA -->
-                                        <td class="py-3 px-4 font-medium">{{ formatOnlyDate(record.date) }}</td>
-                                        
-                                        <!-- DEPARTAMENTO -->
-                                        <td class="py-3 px-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate"
-                                            :title="record.personInfo?.orgName">
-                                            {{ formatDept(record.personInfo?.orgName) }}
-                                        </td>
-                                        
-                                        <!-- 1. ENTRADA (Horario Mañana: beginTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-green-600 dark:text-green-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
-                                            {{ record.entrada ? formatTimeOnly(record.entrada) : '—' }}
-                                        </td>
+                                <tr v-for="(record, index) in attendanceData" :key="index"
+                                    class="border-b border-gray-100 dark:border-gray-800/50 text-sm hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors text-gray-800 dark:text-white/90">
 
-                                        <!-- 2. SALIDA BREAK (Horario Mañana: endTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono text-amber-600 dark:text-amber-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
-                                            {{ record.salida_break ? formatTimeOnly(record.salida_break) : '—' }}
-                                        </td>
+                                    <td class="py-3 px-4 font-medium">{{ record.fecha }}</td>
 
-                                        <!-- 3. ENTRADA BREAK (Horario Tarde: beginTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono text-brand-600 dark:text-brand-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500' : '']">
-                                            {{ record.entrada_break ? formatTimeOnly(record.entrada_break) : '—' }}
-                                        </td>
+                                    <td class="py-3 px-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate"
+                                        :title="record.orgName">
+                                        {{ record.orgName }}
+                                    </td>
 
-                                        <!-- 4. SALIDA FINAL (Horario Tarde: endTime) -->
-                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-red-600 dark:text-red-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
-                                            {{ record.salida ? formatTimeOnly(record.salida) : '—' }}
-                                        </td>
+                                    <!-- ENTRADA -->
+                                    <td
+                                        class="py-3 px-4 text-center font-mono font-semibold text-green-600 dark:text-green-400">
+                                        {{ record.hora_entrada || '—' }}
+                                    </td>
 
-                                        <!-- ESTADOS (Apilados para mostrar el estado de la Mañana y de la Tarde) -->
-                                        <td class="py-3 px-4 text-center whitespace-nowrap">
-                                            <div class="flex flex-col gap-1 items-center justify-center">
-                                                <span v-if="record.estado_manana" 
-                                                    :class="['px-2 py-0.5 text-[10px] font-semibold rounded-full border', obtenerEstiloEstado(record.estado_manana).class]">
-                                                    AM: {{ obtenerEstiloEstado(record.estado_manana).label }}
-                                                </span>
-                                                <span v-if="record.estado_tarde" 
-                                                    :class="['px-2 py-0.5 text-[10px] font-semibold rounded-full border', obtenerEstiloEstado(record.estado_tarde).class]">
-                                                    PM: {{ obtenerEstiloEstado(record.estado_tarde).label }}
-                                                </span>
-                                            </div>
-                                        </td>
+                                    <!-- SALIDA BREAK -->
+                                    <td class="py-3 px-4 text-center font-mono text-amber-600 dark:text-amber-400">
+                                        {{ record.hora_almuerzo_salida || '—' }}
+                                    </td>
 
-                                        <!-- HORAS TRABAJADAS (Suma total) -->
-                                        <td :class="['py-3 px-4 text-center font-mono font-semibold text-indigo-600 dark:text-indigo-400', record.es_problematico ? 'line-through !text-gray-400 dark:!text-gray-500 font-normal' : '']">
-                                            {{ formatearSegundos(record.total_duracion) }}
-                                        </td>
-                                    </tr>
+                                    <!-- ENTRADA BREAK -->
+                                    <td class="py-3 px-4 text-center font-mono text-brand-600 dark:text-brand-400">
+                                        {{ record.hora_almuerzo_entrada || '—' }}
+                                    </td>
 
-                                    <!-- FILA ADVERTENCIA -->
-                                    <tr v-if="record.es_problematico"
-                                        class="bg-amber-50/40 dark:bg-amber-950/10 border-b border-gray-100 dark:border-gray-800/50">
-                                        <td colspan="8" class="py-2.5 px-4 text-xs text-amber-800 dark:text-amber-400 font-medium">
-                                            <div class="flex items-center gap-2">
-                                                <svg class="w-4 h-4 text-amber-600 dark:text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                                </svg>
-                                                <span>
-                                                    <strong>¡Advertencia!</strong> Se registró una ausencia en uno de los bloques. Verifique la asistencia de la institución.
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </template>
+                                    <!-- SALIDA FINAL -->
+                                    <td
+                                        class="py-3 px-4 text-center font-mono font-semibold text-red-600 dark:text-red-400">
+                                        {{ record.hora_salida || '—' }}
+                                    </td>
+
+                                    <!-- ESTADO -->
+                                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                                        <span :class="[
+                                            'px-2.5 py-1 text-xs font-semibold rounded-full border',
+                                            record.hora_entrada && record.hora_salida
+                                                ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                                                : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                                        ]">
+                                            {{ record.estado_asistencia }}
+                                        </span>
+                                    </td>
+
+                                    <!-- HORAS TRABAJADAS -->
+                                    <td
+                                        class="py-3 px-4 text-center font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                                        {{ record.horas_trabajadas }}
+                                    </td>
+
+                                    <!-- TIEMPO BREAK -->
+                                    <td class="py-3 px-4 text-center font-mono text-teal-600 dark:text-teal-400">
+                                        {{ record.tiempo_break }}
+                                    </td>
+                                    <!-- BOTÓN VER DETALLE -->
+                                    <td class="py-3 px-4 text-center">
+                                        <button @click="verDetalleDia(record)"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Detalle
+                                        </button>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -358,10 +351,9 @@
                             </path>
                         </svg>
                         <span>{{ sincronizando ? 'Procesando Sincronización...' : 'Comparar marcaciones y registrar'
-                        }}</span>
+                            }}</span>
                     </button>
                 </div>
-
                 <div v-if="datosFinales && datosFinales.length > 0" class="mt-8">
                     <h4 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
                         Resultado Final Base de Datos (SIAD)
@@ -450,6 +442,122 @@
                     class="mt-6 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/20 p-4 rounded-lg text-center border border-gray-100 dark:border-gray-800">
                     No se encontraron registros de asistencia en el rango de fechas seleccionado.
                 </div>
+                <!-- MODAL DE DETALLES DE MARCACIÓN -->
+               <div v-if="modalDetalleOpen"
+                    class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-99999">
+                    <div
+                        class="relative bg-white dark:bg-gray-900 rounded-xl max-w-4xl w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 max-h-[90vh] flex flex-col">
+
+                        <!-- HEADER DEL MODAL -->
+                        <div
+                            class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4 mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                                    Detalle de Eventos de Marcación
+                                </h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                    Fecha: <span class="font-semibold text-blue-600 dark:text-blue-400">{{
+                                        fechaSeleccionada }}</span> | Persona: <span class="font-semibold">{{
+                                            personaData?.NombInfPer || personaData?.personName }}</span>
+                                </p>
+                            </div>
+                            <button @click="modalDetalleOpen = false"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- CONTENIDO GRID DE EVENTOS -->
+                        <div class="overflow-y-auto flex-1 pr-1 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div v-for="(evt, idx) in eventosDiaSeleccionado" :key="idx"
+                                    class="border rounded-xl p-4 bg-gray-50/50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700/60 flex gap-4 items-start relative overflow-hidden">
+
+                                    <!-- FOTO DEL EVENTO -->
+                                    <div
+                                        class="w-24 h-32 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0 border border-gray-300 dark:border-gray-600 relative">
+                                        <img v-if="evt.picUrl" :src="evt.picUrl" alt="Foto Marcación"
+                                            class="w-full h-full object-cover" />
+                                        <div v-else
+                                            class="w-full h-full flex flex-col items-center justify-center text-gray-400 text-[10px] p-2 text-center">
+                                            <svg class="w-6 h-6 mb-1 opacity-50" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            Sin Foto
+                                        </div>
+                                    </div>
+
+                                    <!-- INFORMACIÓN DEL EVENTO -->
+                                    <div class="flex-1 min-w-0 flex flex-col justify-between h-full py-0.5">
+                                        <div>
+                                            <!-- CLASIFICACIÓN ASIGNADA -->
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span
+                                                    class="font-mono text-base font-bold text-gray-900 dark:text-white">
+                                                    {{ evt.hora }}
+                                                </span>
+                                                <span v-if="evt.rolClasificado" :class="[
+                                                    'px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider',
+                                                    evt.rolClasificado === 'ENTRADA' ? 'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300' : '',
+                                                    evt.rolClasificado === 'SALIDA BREAK' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300' : '',
+                                                    evt.rolClasificado === 'ENTRADA BREAK' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300' : '',
+                                                    evt.rolClasificado === 'SALIDA' ? 'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-300' : ''
+                                                ]">
+                                                    {{ evt.rolClasificado }}
+                                                </span>
+                                            </div>
+
+                                            <!-- RESALTADO DE DISPOSITIVO / PUERTA -->
+                                            <div class="space-y-1 mt-2">
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    Puerta / Acceso:
+                                                </div>
+                                                <div
+                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-medium">
+                                                    <svg class="w-3.5 h-3.5 text-indigo-500" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                                    </svg>
+                                                    <span class="truncate">{{ evt.doorName || 'Puerta Desconocida'
+                                                        }}</span>
+                                                </div>
+
+                                                <div v-if="evt.readerName"
+                                                    class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                                                    Lector: <span
+                                                        class="font-medium text-gray-700 dark:text-gray-300">{{
+                                                        evt.readerName }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- EVENT ID O TARJETA -->
+                                        <div
+                                            class="text-[10px] text-gray-400 dark:text-gray-500 mt-3 pt-2 border-t border-gray-200/60 dark:border-gray-700/60 flex justify-between">
+                                            <span>ID: {{ evt.eventId }}</span>
+                                            <span v-if="evt.cardNo">Tarjeta: {{ evt.cardNo }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FOOTER DEL MODAL -->
+                        <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end">
+                            <button @click="modalDetalleOpen = false"
+                                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>  
             </div>
         </div>
     </div>
@@ -489,61 +597,10 @@ export default {
             datosFinales: null,
             datosLocales: [],
             mostrarTablaLocal: false,
+            modalDetalleOpen: false,
+            fechaSeleccionada: '',
+            eventosDiaSeleccionado: [],
         };
-    },
-    computed: {
-        asistenciasAgrupadas() {
-            const agrupado = {};
-
-            this.attendanceData.forEach(record => {
-                // Ignorar estado 7 (No programado)
-                if (String(record.attendanceBaseInfo?.attendanceStatus) === '7') return;
-
-                // Crear una llave única combinando ID de persona y fecha
-                const key = `${record.personInfo?.personID}_${record.date}`;
-
-                if (!agrupado[key]) {
-                    agrupado[key] = {
-                        personInfo: record.personInfo,
-                        date: record.date,
-                        entrada: null,        // Horario mañana (beginTime)
-                        salida_break: null,   // Horario mañana (endTime)
-                        entrada_break: null,  // Horario tarde (beginTime)
-                        salida: null,         // Horario tarde (endTime)
-                        estado_manana: null,
-                        estado_tarde: null,
-                        total_duracion: 0,
-                        es_problematico: false
-                    };
-                }
-
-                // Identificar si el bloque actual es de la mañana o tarde
-                const nombrePeriodo = record.planInfo?.periodName?.toLowerCase() || '';
-                const esManana = nombrePeriodo.includes('mañana');
-
-                if (esManana) {
-                    agrupado[key].entrada = record.attendanceDetailInfo?.recordTime?.[0]?.beginTime;
-                    agrupado[key].salida_break = record.attendanceDetailInfo?.recordTime?.[0]?.endTime;
-                    agrupado[key].estado_manana = record.attendanceBaseInfo?.attendanceStatus;
-                } else {
-                    // Si es el bloque de la tarde
-                    agrupado[key].entrada_break = record.attendanceDetailInfo?.recordTime?.[0]?.beginTime;
-                    agrupado[key].salida = record.attendanceDetailInfo?.recordTime?.[0]?.endTime;
-                    agrupado[key].estado_tarde = record.attendanceBaseInfo?.attendanceStatus;
-                }
-
-                // Sumar los segundos trabajados de ambos turnos
-                agrupado[key].total_duracion += Number(record.normalInfo?.durationTime || 0);
-
-                // Si cualquiera de los dos turnos marca Ausente (4), marcar la fila con advertencia
-                /*if (record.attendanceBaseInfo?.attendanceStatus === '4') {
-                    agrupado[key].es_problematico = true;
-                }*/
-            });
-
-            // Retornar un array limpio para el v-for
-            return Object.values(agrupado);
-        }
     },
     methods: {
         onlyNumbers(event) {
@@ -551,29 +608,6 @@ export default {
             if (charCode < 48 || charCode > 57) {
                 event.preventDefault();
             }
-        },
-        esMarcacionProblematica(record) {
-            if (!record) return false;
-
-            const detailInfo = record.attendanceDetailInfo;
-            // 1. Validar si el campo recordTime NO existe o si su longitud es menor o igual a 0
-            const sinRecordTime = !detailInfo || !detailInfo.recordTime || detailInfo.recordTime.length === 0;
-
-            return sinRecordTime;
-        },
-        obtenerEstiloEstado(status) {
-            const estados = {
-                "1": { label: "Normal", class: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-                "2": { label: "Tarde", class: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400" },
-                "3": { label: "Salida Anticipada", class: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400" },
-                "4": { label: "Ausente", class: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
-                "5": { label: "Tarde y Salida Ant.", class: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" },
-                "6": { label: "Día Festivo", class: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
-                "7": { label: "No Programado", class: "bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-400" },
-                "8": { label: "Permiso", class: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400" }
-            };
-
-            return estados[status] || { label: "Desconocido", class: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" };
         },
         obtenerClasePorEstadoDB(estadoTexto) {
             if (!estadoTexto) return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
@@ -733,16 +767,17 @@ export default {
 
             try {
                 // Modifica esta ruta según el nombre que le hayas dado a tu endpoint en routes/api.php
-                const response = await API.post('/biometrico/attendance-report', {
+                const response = await API.post('/biometrico/eventos-puerta-asistencia-v2', {
                     personCode: this.personaData.CIInfPer,
-                    personID: this.personIdHC,
-                    beginTime: this.beginTime,
+                    startTime: this.beginTime,
                     endTime: this.endTime
                 });
                 //console.log("Respuesta de asistencia:", response);
                 // HikCentral normalmente devuelve la lista de registros dentro de data.data.list
-                if (response.data && response.data.data && response.data.data.record) {
-                    this.attendanceData = response.data.data.record;
+                const listaEventos = response.data?.data?.list || response.data?.list || [];
+                console.log("Eventos obtenidos:", response);
+                if (listaEventos.length > 0) {
+                    this.attendanceData = this.procesarEventosPuertas(listaEventos);
                     await this.verificarAsistenciaLocal();
                 } else {
                     this.attendanceData = [];
@@ -754,6 +789,128 @@ export default {
             } finally {
                 this.cargandoAsistencia = false;
             }
+        },
+        getPhotoUrl23(picUri) {
+            if (!picUri) return '';
+            const baseURL2 = API.defaults.baseURL;
+           return `${baseURL2}/biometrico/gethickVer?picUri=${encodeURIComponent(picUri)}`;
+        },
+        procesarEventosPuertas(eventos) {
+            const eventosPorFecha = {};
+
+            // 1. Agrupar marcaciones por fecha YYYY-MM-DD
+            eventos.forEach(evt => {
+                const rawTime = evt.swipeTime || evt.eventTime || evt.deviceTime;
+                if (!rawTime) return;
+
+                const dateObj = new Date(rawTime);
+                if (isNaN(dateObj.getTime())) return;
+
+                const fecha = rawTime.split('T')[0];
+                const horaStr = rawTime.split('T')[1]?.substring(0, 8); // "HH:mm:ss"
+
+                // Calcular segundos desde medianoche (00:00:00)
+                const segundos = dateObj.getHours() * 3600 + dateObj.getMinutes() * 60 + dateObj.getSeconds();
+
+                // Construir la URL proxy o relativa para la imagen si existe picUri
+                let picUrl = null;
+                if (evt.picUri) {
+                    // Ajusta este endpoint según la ruta proxy que tengas para cargar fotos de HikCentral
+                    picUrl = this.getPhotoUrl23(evt.picUri);
+                }
+
+                if (!eventosPorFecha[fecha]) {
+                    eventosPorFecha[fecha] = [];
+                }
+
+                eventosPorFecha[fecha].push({
+                    eventId: evt.eventId,
+                    hora: horaStr,
+                    segundos: segundos,
+                    doorName: evt.doorName,
+                    doorIndexCode: evt.doorIndexCode,
+                    readerName: evt.readerName,
+                    cardNo: evt.cardNo,
+                    picUri: evt.picUri,
+                    picUrl: picUrl,
+                    rawEventTime: rawTime,
+                    rolClasificado: null // Se asignará durante la clasificación
+                });
+            });
+
+            const resultado = [];
+            const fechasOrdenadas = Object.keys(eventosPorFecha).sort();
+
+            // 2. Aplicar rangos y reglas por cada día
+            fechasOrdenadas.forEach(fecha => {
+                const marcaciones = eventosPorFecha[fecha].sort((a, b) => a.segundos - b.segundos);
+
+                // ENTRADA TRABAJO: 04:00 (14400s) a 10:00 (36000s) -> La más temprana [0]
+                const entradas = marcaciones.filter(m => m.segundos >= 14400 && m.segundos <= 36000);
+                let hora_entrada = null;
+                if (entradas.length > 0) {
+                    hora_entrada = entradas[0].hora;
+                    entradas[0].rolClasificado = 'ENTRADA';
+                }
+
+                // SALIDA BREAK: 12:00 (43200s) a 14:00 (50400s) -> La más temprana [0]
+                const marcacionesBreak = marcaciones.filter(m => m.segundos >= 43200 && m.segundos <= 50400);
+                let hora_almuerzo_salida = null;
+                if (marcacionesBreak.length > 0) {
+                    hora_almuerzo_salida = marcacionesBreak[0].hora;
+                    marcacionesBreak[0].rolClasificado = 'SALIDA BREAK';
+                }
+
+                // ENTRADA BREAK: 12:00 (43200s) a 14:00 (50400s) -> La más temprana posterior a la Salida Break
+                let hora_almuerzo_entrada = null;
+                if (hora_almuerzo_salida && marcacionesBreak.length > 1) {
+                    const entradasBreak = marcacionesBreak.filter(m => m.segundos > marcacionesBreak[0].segundos);
+                    if (entradasBreak.length > 0) {
+                        // Se selecciona la última marcación del listado filtrado
+                        const ultimaEntradaBreak = entradasBreak[entradasBreak.length - 1];
+                        hora_almuerzo_entrada = ultimaEntradaBreak.hora;
+                        ultimaEntradaBreak.rolClasificado = 'ENTRADA BREAK';
+                    }
+                }
+
+                // SALIDA TRABAJO: 14:00 (50400s) a 23:00 (82800s) -> La última [length - 1]
+                const salidas = marcaciones.filter(m => m.segundos >= 50400 && m.segundos <= 82800);
+                let hora_salida = null;
+                if (salidas.length > 0) {
+                    const ultimaSalida = salidas[salidas.length - 1];
+                    hora_salida = ultimaSalida.hora;
+                    ultimaSalida.rolClasificado = 'SALIDA';
+                }
+
+                // Determinar estado de asistencia
+                let estado_asistencia = 'Incompleto';
+                if (hora_entrada && hora_salida) {
+                    estado_asistencia = 'Normal';
+                } else if (!hora_entrada && !hora_salida) {
+                    estado_asistencia = 'Sin Marcación';
+                }
+
+                resultado.push({
+                    fecha: fecha,
+                    orgName: this.personaData?.orgName || 'Institución',
+                    hora_entrada: hora_entrada,
+                    hora_almuerzo_salida: hora_almuerzo_salida,
+                    hora_almuerzo_entrada: hora_almuerzo_entrada,
+                    hora_salida: hora_salida,
+                    estado_asistencia: estado_asistencia,
+                    horas_trabajadas: this.calcularHorasTrabajadas(hora_entrada, hora_salida),
+                    tiempo_break: this.calcularTiempoBreak(hora_almuerzo_salida, hora_almuerzo_entrada),
+                    eventos: marcaciones // Guardamos la lista completa de eventos del día para la vista detallada
+                });
+            });
+
+            return resultado;
+        },
+
+        verDetalleDia(record) {
+            this.fechaSeleccionada = record.fecha;
+            this.eventosDiaSeleccionado = record.eventos || [];
+            this.modalDetalleOpen = true;
         },
         async verificarAsistenciaLocal() {
             try {
@@ -773,26 +930,17 @@ export default {
             }
         },
         async compararYRegistrar() {
-           this.mostrarTablaLocal = false;
+            this.mostrarTablaLocal = false;
             this.sincronizando = true;
 
-            // Usamos directamente 'asistenciasAgrupadas' que ya tiene la lógica de turnos resuelta
-            const marcacionesFormateadas = this.asistenciasAgrupadas.map(record => {
-                
-                // Obtenemos los labels de los estados para enviarlos como texto
-                const labelAM = record.estado_manana ? this.obtenerEstiloEstado(record.estado_manana).label : '';
-                const labelPM = record.estado_tarde ? this.obtenerEstiloEstado(record.estado_tarde).label : '';
-                
-                // Unimos los estados (ej. "Normal / Retraso") o definimos uno por defecto
-                const estadoFinal = [labelAM, labelPM].filter(Boolean).join(' / ') || 'Desconocido';
-
+            const marcacionesFormateadas = this.attendanceData.map(record => {
                 return {
-                    fecha: record.date,
-                    hora_entrada: record.entrada || null,
-                    hora_almuerzo_salida: record.salida_break || null,
-                    hora_almuerzo_entrada: record.entrada_break || null,
-                    hora_salida: record.salida || null,
-                    estado_asistencia: estadoFinal 
+                    fecha: record.fecha,
+                    hora_entrada: record.hora_entrada,
+                    hora_almuerzo_salida: record.hora_almuerzo_salida,
+                    hora_almuerzo_entrada: record.hora_almuerzo_entrada,
+                    hora_salida: record.hora_salida,
+                    estado_asistencia: 'Normal'
                 };
             });
 
@@ -804,15 +952,9 @@ export default {
                     marcaciones: marcacionesFormateadas
                 });
 
-                // Actualizamos los datos locales con la respuesta de la DB
                 this.datosFinales = response.data;
-                this.datosLocales = response.data; 
-                
                 mostraralertas2("Marcaciones comparadas y sincronizadas con éxito.", "success");
-                
                 this.existeEnDB = true;
-                this.mostrarTablaLocal = true; // Volvemos a mostrar la tabla inferior ya actualizada
-
             } catch (error) {
                 console.error("Error al sincronizar marcaciones:", error);
                 mostraralertas2("Ocurrió un error al procesar las marcaciones.", "error");
@@ -921,6 +1063,26 @@ export default {
                 second: '2-digit',
                 hour12: true
             });
+        },
+        calcularTiempoBreak(horaSalidaBreak, horaEntradaBreak) {
+            if (!horaSalidaBreak || !horaEntradaBreak) return '—';
+            const [h1, m1, s1] = horaSalidaBreak.split(':').map(Number);
+            const [h2, m2, s2] = horaEntradaBreak.split(':').map(Number);
+            let diff = (h2 * 3600 + m2 * 60 + (s2 || 0)) - (h1 * 3600 + m1 * 60 + (s1 || 0));
+            if (diff <= 0) return '—';
+            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            return `${h}:${m}`;
+        },
+        calcularHorasTrabajadas(horaEntrada, horaSalida) {
+            if (!horaEntrada || !horaSalida) return '—';
+            const [h1, m1, s1] = horaEntrada.split(':').map(Number);
+            const [h2, m2, s2] = horaSalida.split(':').map(Number);
+            let diff = (h2 * 3600 + m2 * 60 + (s2 || 0)) - (h1 * 3600 + m1 * 60 + (s1 || 0));
+            if (diff <= 0) return '—';
+            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            return `${h}:${m}`;
         },
         calcularSalidaBreak(entradaBreak, duracionSegundos) {
             // Si no hay hora de entrada o la duración no es válida, retornamos un guion
@@ -1170,13 +1332,13 @@ export default {
 </script>
 <style scoped>
 /* Clases para el desvanecimiento de Vue */
-.fade-enter-active, 
+.fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease;
 }
 
-.fade-enter-from, 
+.fade-enter-from,
 .fade-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 </style>

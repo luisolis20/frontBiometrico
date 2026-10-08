@@ -728,7 +728,7 @@ export default {
                     endTime: this.fechaFin
                 };
                 const response = await API.post(`${this.baseUrl}/eventos-puerta-asistencia`, payload);
-                //console.log("✅ Eventos obtenidos:", response);
+                console.log("✅ Eventos obtenidos:", response);
                 if (response.data?.data?.list) {
                     // En vez de mostrar la lista cruda, la procesamos
                     this.procesarMarcacionesAgrupadas(response.data.data.list);
@@ -760,8 +760,8 @@ export default {
             try {
                 const response = await API.get(`${this.baseUrl}/get-access-levels`);
                 const response2 = await API.get(`${this.baseUrl}/get-access-person`);
-                /*console.log("✅ Niveles de acceso obtenidos:", response);
-                console.log("✅ Personas con acceso obtenidas:", response2);*/
+                console.log("✅ Niveles de acceso obtenidos:", response);
+                console.log("✅ Personas con acceso obtenidas:", response2);
             } catch (error) {
                 console.error("❌ Error al obtener niveles de acceso:", error);
             }
