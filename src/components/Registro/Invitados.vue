@@ -38,9 +38,20 @@
                             <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ personaData.cedula }}</p>
                                 <div class="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                               <button @click="abrirWizardEdicion(invitado)" class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
+                               <button v-if="personaData.estado==1" @click="abrirWizardEdicion(personaData)" class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     Editar Invitado
+                                </button>
+                                <!-- Botón Inhabilitar (Visible solo si estado es 1) -->
+                                <button v-if="personaData.estado == 1" @click="inhabilitarPerson(personaData)" class="px-3 py-1.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                    Inhabilitar
+                                </button>
+
+                                <!-- Botón Habilitar (Visible solo si estado es 0) -->
+                                <button v-if="personaData.estado == 0" @click="habilitarPerson(personaData)" class="px-3 py-1.5 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Habilitar
                                 </button>
                             </div>
                         </div>
@@ -178,8 +189,8 @@
                 </div>
                 <div
                     class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11 mt-4">
-                    <button v-if="!estaRegistrado && !cargandoStatus" type="button" :disabled="cargando"
-                        @click="registrarEnHikCentral(personaData.cedula)"
+                    <button v-if="!estaRegistrado && !cargandoStatus && personaData.estado == 1" type="button" :disabled="cargando"
+                        @click="registrarEnHikCentral(personaData.cedula, false)"
                         class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50">
                         Enviar Foto a HIK
                     </button>
@@ -227,7 +238,9 @@
 
                 <!-- PASO 1: DATOS Y ARCHIVOS -->
                 <div v-if="pasoActual === 1">
-                    <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-white">Registro de Nuevo Invitado</h3>
+                    <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-white">
+                        {{ modoEdicion ? 'Editar Invitado' : 'Registro de Nuevo Invitado' }}
+                    </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Cédula -->
                         <div>
@@ -338,7 +351,9 @@
 
                         <!-- UPLOADER IMAGEN (FOTO) -->
                         <div>
-                            <label class="block text-[10px] font-bold mb-1 text-gray-700 dark:text-gray-300">Fotografía del Invitado (Obligatorio para HC)</label>
+                            <label class="block text-[10px] font-bold mb-1 text-gray-700 dark:text-gray-300">
+                                {{ modoEdicion ? 'Actualizar Fotografía (Opcional)' : 'Fotografía del Invitado (Obligatorio para HC)' }}
+                            </label>
                             <div @click="$refs.fileFoto.click()" class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all" :class="archivoFotoName ? 'border-brand-500 bg-brand-50/20' : 'border-gray-300 hover:border-brand-400 bg-gray-50 dark:bg-gray-800/50'">
                                 <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                     <svg v-if="!archivoFotoName" class="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -358,25 +373,61 @@
                         <button @click="cerrarWizard" class="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
                         <button @click="guardarPaso1" :disabled="uploading" class="flex items-center px-4 py-2 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-all">
                             <span v-if="uploading" class="mr-2 inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            Siguiente Paso
+                            {{ modoEdicion ? 'Guardar Cambios' : 'Siguiente Paso' }}
                         </button>
                     </div>
                 </div>
 
                 <!-- PASO 2: VERIFICACIÓN Y ENVÍO A HIKCENTRAL -->
                 <div v-if="pasoActual === 2" class="text-center py-6">
-                    <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">Registro Local Exitoso</h3>
-                    <p class="text-gray-500 mb-6 text-sm">El invitado fue guardado en la base de datos local. Ahora procedemos a sincronizar la foto con HikCentral.</p>
+                    <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-white">
+                        {{ modoEdicion ? 'Actualización Local Exitosa' : 'Registro Local Exitoso' }}
+                    </h3>
+                    <p class="text-gray-500 mb-6 text-sm">
+                        {{ modoEdicion ? 'Los datos fueron actualizados localmente. Ahora procedemos a sincronizar los cambios con HikCentral.' : 'El invitado fue guardado en la base de datos local. Ahora procedemos a sincronizar la foto con HikCentral.' }}
+                    </p>
                     
                     <div class="inline-block p-4 border border-gray-200 rounded-xl mb-6 shadow-sm bg-gray-50 dark:bg-gray-900 dark:border-gray-700 text-left">
                         <div class="flex items-center gap-4">
-                            <img :src="getPhotoUrlInvitado(personaData.cedula, personaData.foto)" @error="handleImageError" class="w-20 h-20 rounded-xl object-cover border-2 border-brand-200 shadow-sm" />
-                            <div>
-                                <h4 class="font-bold text-gray-800 dark:text-white">{{ personaData.nombres }} {{ personaData.apellidos }}</h4>
-                                <p class="text-xs text-gray-500">Cédula: {{ personaData.cedula }}</p>
+                            <!-- FOTO ACTUAL (HikCentral) -->
+                           <div v-if="modoEdicion" class="flex flex-col items-center">
+                                <span class="text-[10px] font-bold text-gray-500 uppercase mb-1">Foto Actual en
+                                    HC</span>
+                                <img :src="getPhotoUrHIk(personaData.cedula)"
+                                    @error="handleImageError"
+                                    class="w-20 h-20 rounded-xl object-cover border-2 border-gray-300 shadow-sm opacity-80" />
+                            </div>
+
+                            <!-- FLECHA INDICADORA (Solo si hay cambio de foto) -->
+                            <div v-if="modoEdicion && nuevaFotoPreview" class="hidden sm:flex text-gray-400">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                            </div>
+
+                            <!-- NUEVA FOTO / FOTO ÚNICA -->
+                            <div class="flex flex-col items-center">
+                                <span v-if="modoEdicion && nuevaFotoPreview"
+                                    class="text-[10px] font-bold text-brand-600 uppercase mb-1">Nueva Foto a
+                                    Subir</span>
+                                <img :src="nuevaFotoPreview || getPhotoUrlInvitado(personaData.cedula, personaData.foto)"
+                                    @error="handleImageError"
+                                    class="w-20 h-20 rounded-xl object-cover border-2 border-brand-400 shadow-sm" />
+                            </div>
+
+                            <!-- DATOS DE LA PERSONA -->
+                            <div class="ml-4 border-l pl-4 border-gray-200 dark:border-gray-700">
+                                <h4 class="font-bold text-gray-800 dark:text-white">{{ formWizard.nombres }} {{
+                                    formWizard.apellidos }}</h4>
+                                <p class="text-xs text-gray-500">Cédula: {{ formWizard.cedula }}</p>
                                 <div class="mt-2 flex items-center gap-2 text-xs">
-                                    <span v-if="cargandoStatus" class="text-gray-500 animate-pulse">Verificando estado HC...</span>
-                                    <span v-else-if="!estaRegistrado" class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-semibold border border-yellow-200">Pendiente de Sincronización</span>
+                                    <span v-if="cargandoStatus" class="text-gray-500 animate-pulse">Verificando estado
+                                        HC...</span>
+                                    <span v-else-if="!estaRegistrado"
+                                        class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-semibold border border-yellow-200">
+                                        {{ modoEdicion ? 'Cambios Pendientes' : 'Pendiente de Sincronización' }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -428,7 +479,7 @@
                     <div class="flex justify-center space-x-4">
                         <button @click="cerrarWizard" class="px-6 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Dejar para más tarde</button>
                         <button @click="registrarEnHikCentralWizard" :disabled="cargando" class="flex items-center px-6 py-2.5 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 shadow-lg disabled:opacity-50 transition-all">
-                            Sincronizar con HikCentral
+                            {{ modoEdicion ? 'Actualizar en HikCentral' : 'Sincronizar con HikCentral' }}
                         </button>
                     </div>
                 </div>
@@ -560,6 +611,11 @@ export default {
             loadingAccessLevels: false,
             nombreDepartamento: '',
             cargandoDepartamento: false,
+            modoEdicion: false,
+            nuevaFotoPreview: null,
+            idpersona: null,
+            fotoAnterior: null,
+            pdfAnterior: null,
         };
     },
     watch: {
@@ -693,6 +749,49 @@ export default {
         document.addEventListener('click', this.handleClickOutside);
     },
     methods: {
+        formatToDatetimeInput(dateStr) {
+            if (!dateStr) return '';
+            const str = dateStr.replace(' ', 'T');
+            const date = new Date(str);
+            if (isNaN(date.getTime())) return '';
+            
+            const pad = (num) => String(num).padStart(2, '0');
+            const year = date.getFullYear();
+            const month = pad(date.getMonth() + 1);
+            const day = pad(date.getDate());
+            const hours = pad(date.getHours());
+            const minutes = pad(date.getMinutes());
+
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        },
+        abrirWizardEdicion(invitado) {
+            this.modoEdicion = true;
+            this.pasoActual = 1;
+            this.fotoAnterior = invitado.foto || null;
+            this.pdfAnterior = invitado.evidencia || null;
+            // Poblar el formulario con los datos existentes
+            this.formWizard = {
+                cedula: invitado.cedula,
+                nombres: invitado.nombres,
+                apellidos: invitado.apellidos,
+                genero: invitado.genero,
+                correo: invitado.correo,
+                codigo_departamento: invitado.codigo_departamento,
+                begin_time: invitado.begin_time,
+                end_time: invitado.end_time,
+                estado: invitado.estado,
+                privilegeGroupId: invitado.privilegeGroupId
+            };
+            this.idpersona = invitado.id;
+            //this.fotoActualHikCentral = invitado.foto; // La foto que viene de BD
+            this.archivoPdf = null;
+            this.archivoPdfName = '';
+            this.archivoFoto = null;
+            this.archivoFotoName = '';
+            this.nuevaFotoPreview = null;
+            this.cargarDepartamentos();
+            this.mostrarWizard = true;
+        },
         formatSexo(val) {
             if (!val && val !== 0) return 'No registrado';
             const strVal = String(val).trim().toUpperCase();
@@ -844,7 +943,6 @@ export default {
 
                     // Si la estructura no tenía PrivilegeGroupInfo, se asigna la lista completa
                     this.accessLevels = grupos.length > 0 ? grupos : list;
-                    console.log("Niveles de acceso cargados desde API:", this.accessLevels);
                 } else {
                     mostraralertas2('No se pudieron obtener los niveles de acceso', 'warning');
                 }
@@ -920,6 +1018,8 @@ export default {
             }
             this.archivoFoto = file;
             this.archivoFotoName = file.name;
+            this.nuevaFotoPreview = URL.createObjectURL(file);
+            this.formWizard.nuevaFotoArchivo = file;
         },
         async buscarInvitado() {
             this.errorValidacion = false;
@@ -998,14 +1098,53 @@ export default {
         },
         cerrarWizard() {
             this.mostrarWizard = false;
+            this.modoEdicion = false;
             this.searchQuery = "";
             this.personaData = null;
+            this.nuevaFotoPreview = null;
             this.estencontrado = true;
+            this.cargando = false;
+            this.estaRegistrado = false,
+            this.cargandoStatus = false,
+            this.estencontrado = true,
+            this.comparando = false,
+            this.syncMode = false,
+            this.syncIndex= 0;
+            this.currentSyncName= '';
+            this.comparacionResultado= null;
+            this.personIdHC= null;
+            this.errorValidacion= false;
+            this.errorValidacionTexto= "";
+            this.archivoPdf= null;
+            this.archivoPdfName= '';
+            this.archivoFoto= null;
+            this.archivoFotoName= '';
+            this.departamentos= [];
+            this.cargandoDepartamentos= false;
+            this.dropdownAbierto= false;
+            this.nodosExpandidos= [];
+            this.mostrarModalDepto= false;
+            this.guardandoDepto= false;
+            this.accessLevels= [];
+            this.loadingAccessLevels= false;
+            this.nombreDepartamento= '';
+            this.cargandoDepartamento= false;
+            this.modoEdicion= false;
+            this.nuevaFotoPreview= null;
+            this.idpersona= null;
+            this.fotoAnterior= null;
+            this.pdfAnterior= null;
+            if (this.nuevaFotoPreview) {
+                URL.revokeObjectURL(this.nuevaFotoPreview); // Limpiar memoria
+            }
         },
         formatDateForApi(datetimeLocalStr) {
-            if (!datetimeLocalStr) return "";
-            // datetime-local formato: "YYYY-MM-DDTHH:mm" -> API necesita "YYYY-MM-DD HH:mm:ss"
-            return datetimeLocalStr.replace('T', ' ') + ':00';
+            if (!datetimeLocalStr) return null;
+            if (datetimeLocalStr.includes(' ') && datetimeLocalStr.length === 19) {
+                return datetimeLocalStr;
+            }
+            const str = datetimeLocalStr.replace('T', ' ');
+            return str.length === 16 ? `${str}:00` : str;
         },
         async guardarPaso1() {
             // Validaciones básicas
@@ -1013,23 +1152,40 @@ export default {
                 mostraralertas2("Llene todos los campos obligatorios (*)", "warning");
                 return;
             }
-            if (!this.archivoFoto) {
+           if (!this.modoEdicion && !this.archivoFoto) {
                 mostraralertas2("La fotografía es obligatoria para HikCentral", "warning");
+                return;
+            }
+            if (this.modoEdicion && !this.archivoFoto && !this.fotoAnterior) {
+                mostraralertas2("El invitado debe tener al menos una fotografía cargada", "warning");
                 return;
             }
 
             this.uploading = true;
             try {
                 let evidenciaPath = null;
-                let fotoPath = null;
+                let fotoPath = this.modoEdicion ? this.fotoAnterior : null;;
 
                 // 1. Subir PDF si hay
                 if (this.archivoPdf) {
                     const formPdf = new FormData();
                     formPdf.append('file', this.archivoPdf);
                     formPdf.append('ci', this.formWizard.cedula);
-                    const respPdf = await API.post(`${this.baseUrl}/subirevidencia`, formPdf);
-                    if (respPdf.data.status) evidenciaPath = respPdf.data.filename;
+                    
+                    // Si estamos editando y existía un PDF anterior, se envía old_filename para borrarlo
+                    if (this.modoEdicion && this.pdfAnterior) {
+                        formPdf.append('old_filename', this.pdfAnterior);
+                    }
+
+                    const respPdf = await API.post(`${this.baseUrl}/subirevidencia`, formPdf, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+
+                    if (respPdf.data && respPdf.data.status) {
+                        evidenciaPath = respPdf.data.filename;
+                    } else {
+                        throw new Error("No se pudo procesar la subida del documento PDF.");
+                    }
                 }
 
                 // 2. Subir Foto
@@ -1037,8 +1193,21 @@ export default {
                     const formFoto = new FormData();
                     formFoto.append('file', this.archivoFoto);
                     formFoto.append('ci', this.formWizard.cedula);
-                    const respFoto = await API.post(`${this.baseUrl}/subirfoto`, formFoto);
-                    if (respFoto.data.status) fotoPath = respFoto.data.filename;
+
+                    // Si estamos editando y existía una foto anterior, se envía old_filename para borrarla
+                    if (this.modoEdicion && this.fotoAnterior) {
+                        formFoto.append('old_filename', this.fotoAnterior);
+                    }
+
+                    const respFoto = await API.post(`${this.baseUrl}/subirfoto`, formFoto, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+
+                    if (respFoto.data && respFoto.data.status) {
+                        fotoPath = respFoto.data.filename;
+                    } else {
+                        throw new Error("No se pudo procesar la subida de la imagen.");
+                    }
                 }
 
                 // 3. Preparar JSON y guardar en BD local
@@ -1049,11 +1218,17 @@ export default {
                     evidencia: evidenciaPath,
                     foto: fotoPath
                 };
+                if(this.modoEdicion) {
+                    const resDB = await API.put(`${this.baseUrl}/hikcentral_invitados/${this.idpersona}`, dataToSave);
+                    this.personaData = resDB.data.data;
+                }else{
 
-                const resDB = await API.post(`${this.baseUrl}/hikcentral_invitados`, dataToSave);
+                    const resDB = await API.post(`${this.baseUrl}/hikcentral_invitados`, dataToSave);
+                    this.personaData = resDB.data.data;
+                }
                 
                 // Si guardó bien, cargamos los datos y pasamos al Step 2
-                this.personaData = resDB.data.data;
+                
                 this.pasoActual = 2;
                 this.cargarNivelesAcceso();
                 await this.verificarRegistroHC(this.personaData.cedula);
@@ -1074,9 +1249,13 @@ export default {
             if (!this.formWizard.privilegeGroupId) {
                 return mostraralertas2("Debes seleccionar un nivel de acceso antes de sincronizar.", "warning");
             }
+            if(this.modoEdicion) {
+                await this.UpdateEnHikCentral(this.personaData.cedula, true);
+            }else{
 
-            // 2. Ejecutar la sincronización indicando que viene desde el Wizard
-            await this.registrarEnHikCentral(this.personaData.cedula, true);
+                // 2. Ejecutar la sincronización indicando que viene desde el Wizard
+                await this.registrarEnHikCentral(this.personaData.cedula, true);
+            }
         },
         async verificarRegistroHC(ci) {
             this.cargandoStatus = true;
@@ -1145,7 +1324,7 @@ export default {
                     // Paso 2: Asignar nivel de acceso si viene del Wizard y se seleccionó un grupo
                     if (isFromWizard && this.formWizard.privilegeGroupId && personID) {
                         try {
-                            const accessResponse = await API.post('/biometrico/addaccess', {
+                            const accessResponse = await API.post(`${this.baseUrl}/addaccess`, {
                                 personID: personID,
                                 privilegeGroupId: this.formWizard.privilegeGroupId
                             });
@@ -1198,7 +1377,7 @@ export default {
                 this.estencontrado = true;
             }
         },
-        async UpdateEnHikCentral(post) {
+        async UpdateEnHikCentral(post, isFromWizard = false) {
             // Confirmación simple
             if (!this.personIdHC) {
                 mostraralertas2("❌ No se puede actualizar: No se encontró el PersonId de HikCentral. Verifique el estado primero.", "error");
@@ -1224,18 +1403,40 @@ export default {
 
             this.cargando = true; // Bloquear UI para evitar clics repetidos
             try {
-                const response = await API.post(`${this.baseUrl}/sync-hikdupdatedoce/${post}`, {
+                const response = await API.post(`${this.baseUrl}/sync-update-invitado-hikdoc/${post}`, {
                     personaId: this.personIdHC // <--- Enviamos el UUID en el body
                 });
                 Swal.close();
                 // Si el código que retorna Artemis es "0" es éxito
                 if (response.data.code === "0" || response.data.msg === "Success") {
+                    let detalleAcceso = "";
+                    if (isFromWizard && this.formWizard.privilegeGroupId && this.personIdHC) {
+                        try {
+                            const accessResponse = await API.post(`${this.baseUrl}/addaccess`, {
+                                personID: this.personIdHC,
+                                privilegeGroupId: this.formWizard.privilegeGroupId
+                            });
+
+                            if (accessResponse.data.code === "0") {
+                                detalleAcceso = " y nivel de acceso asignado correctamente.";
+                            } else {
+                                console.warn("Advertencia al asignar nivel de acceso:", accessResponse.data);
+                                detalleAcceso = `. Sin embargo, hubo un problema asignando el acceso: ${accessResponse.data.msg || 'Error'}`;
+                            }
+                        } catch (errAccess) {
+                            console.error("Error asignando nivel de acceso:", errAccess);
+                            detalleAcceso = ". Ocurrió un error al intentar asignar el nivel de acceso.";
+                        }
+                    }
+                    Swal.close();
                     mostraralertas2(`✅ Actualizado con éxito. ID en HC: ${response.data.data}`, "success");
 
                     // Actualizar el estado en la tabla localmente sin recargar
                     await this.verificarRegistroHC(this.personaData.cedula);
                     if (this.estaRegistrado) {
                         await this.ejecutarComparacion(this.personaData.cedula);
+                    }if (isFromWizard) {
+                        this.pasoActual = 3; // Avanzar al paso final del Wizard
                     }
                 } else if (response.data.code === "128") {
                     console.warn("La foto de: " + this.personaData.cedula + " no es compatible con HikCentral.");
@@ -1289,7 +1490,81 @@ export default {
                 this.uploading = false;
             }
         },
+        async inhabilitarPerson(persona) {
+            // 1. Solicitar contraseña del admin de HikCentral mediante SweetAlert2
+            const { value: adminPassword } = await Swal.fire({
+                title: 'Inhabilitar Invitado',
+                text: 'Ingrese la contraseña de administrador de HikCentral para eliminar al usuario del dispositivo:',
+                input: 'password',
+                inputPlaceholder: 'Contraseña de administrador',
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar e Inhabilitar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value) return 'La contraseña es obligatoria';
+                }
+            });
 
+            if (!adminPassword) return;
+
+            try {
+                this.cargando = true; // Variable opcional de loading
+
+                // 2. Ejecutar la eliminación en HikCentral
+                const payloadHC = {
+                    personId: this.personIdHC,  // Ajusta si tu personId en HC es distinto a la cédula
+                    personCode: persona.cedula,
+                    adminPassword: adminPassword
+                };
+
+                const responseHC = await API.post(`${this.baseUrl}/delete-person`, payloadHC);
+
+                // 3. Si HikCentral fue exitoso, inhabilitamos localmente
+                if (responseHC.data && responseHC.data.code === "0") {
+                    const responseLocal = await API.delete(`${this.baseUrl}/inhabilitar_invitado/${persona.id}`);
+
+                    if (responseLocal.data && !responseLocal.data.error) {
+                        this.personaData.estado = 0; // Actualizar reactivamente la UI
+                        mostraralertas2("Invitado inhabilitado y removido de HikCentral exitosamente.", "success");
+                        await this.verificarRegistroHC(persona.cedula)// Como lo borramos de HK, ya no está registrado
+                        this.comparacionResultado = null; // Y la comparación no es válida
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error al inhabilitar:", error);
+                // Capturar el mensaje devuelto por Laravel (ej. Contraseña incorrecta)
+                const msjError = error.response?.data?.msg || "Ocurrió un error al intentar inhabilitar al invitado.";
+                mostraralertas2(msjError, "error");
+            } finally {
+                this.cargando = false;
+            }
+        },
+        async habilitarPerson(persona) {
+            try {
+                const confirmacion = await Swal.fire({
+                    title: '¿Deseas habilitar a este invitado?',
+                    text: "El invitado volverá a estar activo localmente, recuerda que deberás volver a Sincronizarlo con HikCentral.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, habilitar',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (confirmacion.isConfirmed) {
+                    const responseLocal = await API.delete(`${this.baseUrl}/habilitar_invitado/${persona.id}`);
+                    
+                    if (responseLocal.data && !responseLocal.data.error) {
+                        this.personaData.estado = 1;
+                       
+                        mostraralertas2("Invitado habilitado exitosamente.", "success");
+                    }
+                }
+            } catch (error) {
+                console.error("Error al habilitar:", error);
+                mostraralertas2("Error al habilitar al invitado.", "error");
+            }
+        }
     }
 };
 </script>

@@ -15,5 +15,5 @@ import PageBreadcrumb from "@/components/common/PageBreadcrumb.vue";
 import AdminLayout from "@/components/layout/AdminLayout.vue";
 //import ComponentCard from "@/components/common/ComponentCard.vue";
 import InvitadosViews from "@/components/Registro/Invitados.vue";
-const currentPageTitle = ref("Reporte de Asistencia Individual");
+const currentPageTitle = ref("Registro Individual de Invitados");
 </script>
