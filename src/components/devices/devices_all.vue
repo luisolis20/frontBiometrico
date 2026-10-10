@@ -1,171 +1,258 @@
 <template>
+  <div class="w-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden transition-all duration-300">
+    
+    <!-- Encabezado de la Tabla -->
+    <div class="p-5 border-b border-gray-100 dark:border-gray-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50 dark:bg-gray-800/50">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100">Dispositivos de Control de Acceso</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Torniquetes, biométricos y control de puertas de HikCentral</p>
+        </div>
+      </div>
 
+      <!-- Controles Superiores: Buscador + Selector Registros por Página + Refrescar -->
+      <div class="flex items-center gap-2">
+        <!-- Buscador Local -->
+        <div class="relative flex-1 sm:w-64">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Buscar por nombre o IP..." 
+            class="w-full h-9 pl-9 pr-3 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+          />
+          <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
 
-  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-    <div class="max-w-full overflow-x-auto custom-scrollbar">
-      <table class="min-w-full">
+        <!-- Cantidad por Página -->
+        <select 
+          v-model="pageSize" 
+          @change="onPageSizeChange"
+          class="h-9 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 px-2 focus:border-emerald-500"
+        >
+          <option :value="5">5 por pág.</option>
+          <option :value="10">10 por pág.</option>
+          <option :value="20">20 por pág.</option>
+          <option :value="50">50 por pág.</option>
+        </select>
+
+        <!-- Botón Actualizar -->
+        <button 
+          @click="getDevices(currentPage)" 
+          :disabled="cargando"
+          class="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-gray-700 rounded-lg transition-colors border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:outline-none disabled:opacity-50"
+          title="Actualizar"
+        >
+          <svg class="w-4 h-4" :class="{'animate-spin text-emerald-600': cargando}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenedor de la Tabla -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="border-b border-gray-200 dark:border-gray-700">
-            <th class="px-3 py-3 text-left w-0/10 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                ID
-              </p>
-            </th>
-            <th class="px-5 py-3 text-left w-2/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Nombre del dispositivo
-              </p>
-            </th>
-            <th class="px-5 py-3 text-left w-2/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Dirección IP
-              </p>
-            </th>
-            <th class="px-5 py-3 text-left w-2/11 sm:px-6">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                Conexión
-              </p>
-            </th>
+          <tr class="border-b border-gray-100 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-900/30 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+            <th class="py-3 px-5">Nombre del dispositivo</th>
+            <th class="py-3 px-5">Dirección IP</th>
+            <th class="py-3 px-5 text-center">Conexión</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <tr class="border-t border-gray-100 dark:border-gray-800" v-if="cargando">
-            <td class="px-5 py-4 sm:px-6" colspan="9">
-              <h3 class="text-center">Cargando....</h3>
-            </td>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50 text-xs">
+          
+          <!-- Skeleton Loading -->
+          <tr v-if="cargando" v-for="i in pageSize" :key="'skel-'+i" class="animate-pulse">
+            <td class="py-3.5 px-5"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div></td>
+            <td class="py-3.5 px-5"><div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div></td>
+            <td class="py-3.5 px-5 flex justify-center"><div class="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div></td>
           </tr>
-          <tr v-else v-for="post in datadevice" :key="post.acsDevIndexCode"
-            class="border-t border-gray-100 dark:border-gray-800">
-            <td class="px-5 py-4 sm:px-6">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">
-                {{ post.acsDevIndexCode }}
-              </p>
-            </td>
-            <td class="px-5 py-4 sm:px-6">
-              <span class="block text-gray-500 text-theme-xs dark:text-gray-400">
-                {{post.acsDevName }}
-              </span>
 
-            </td>
-            <td class="px-5 py-4 sm:px-6">
-              <p class="text-gray-500 text-theme-sm dark:text-gray-400">
-                {{ post.acsDevIp }}
-              </p>
-            </td>
-            <td class="px-5 py-4 sm:px-6">
-              <div class="flex items-center">
-                <span v-if="post.status === 1"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clip-rule="evenodd" />
-                  </svg>
-                  Online
-                </span>
-                <span v-else
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clip-rule="evenodd" />
-                  </svg>
-                  Offline
-                </span>
-              </div>
+          <!-- Sin Resultados -->
+          <tr v-else-if="dispositivosFiltrados.length === 0">
+            <td colspan="3" class="py-10 text-center text-gray-400">
+              <svg class="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+              No se encontraron dispositivos de control de acceso registrados.
             </td>
           </tr>
+
+          <!-- Listado de Dispositivos -->
+          <tr 
+            v-else 
+            v-for="post in dispositivosFiltrados" 
+            :key="post.acsDevIndexCode || post.acsDevIp"
+            class="hover:bg-gray-50/80 dark:hover:bg-gray-700/30 transition-colors"
+          >
+            <td class="py-3.5 px-5 font-medium text-gray-800 dark:text-gray-100">
+              {{ post.acsDevName || 'Dispositivo Sin Nombre' }}
+            </td>
+            <td class="py-3.5 px-5 text-gray-500 dark:text-gray-400 font-mono text-[11px]">
+              {{ post.acsDevIp || 'N/A' }}
+            </td>
+            <td class="py-3.5 px-5 text-center">
+              <span 
+                v-if="post.status === 1"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                Online
+              </span>
+              <span 
+                v-else
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>
+                Offline
+              </span>
+            </td>
+          </tr>
+
         </tbody>
       </table>
     </div>
 
-    <br /><br />
+    <!-- Paginación Inferior -->
+    <div class="p-4 border-t border-gray-100 dark:border-gray-700/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400 bg-gray-50/30 dark:bg-gray-800/30">
+      
+      <div>
+        Mostrando página <span class="font-bold text-gray-800 dark:text-gray-200">{{ currentPage }}</span> de <span class="font-bold text-gray-800 dark:text-gray-200">{{ lastPage }}</span> 
+        <span v-if="totalItems > 0">({{ totalItems }} dispositivos en total)</span>
+      </div>
 
-    <!-- Modal de Edición de Usuario -->
-    <Modal v-if="isEditModalOpen" @close="isEditModalOpen = false">
+      <!-- Botones Paginador -->
+      <div class="flex items-center gap-1">
+        <button 
+          @click="cambiarPagina(currentPage - 1)" 
+          :disabled="currentPage === 1 || cargando"
+          class="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-40 transition-all focus:outline-none"
+        >
+          Anterior
+        </button>
 
-    </Modal>
+        <button 
+          v-for="p in paginasVisibles" 
+          :key="'p-'+p"
+          @click="cambiarPagina(p)"
+          :class="p === currentPage ? 'bg-emerald-600 text-white font-bold border-emerald-600' : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'"
+          class="px-3 py-1.5 rounded-lg border text-xs transition-all focus:outline-none"
+        >
+          {{ p }}
+        </button>
+
+        <button 
+          @click="cambiarPagina(currentPage + 1)" 
+          :disabled="currentPage === lastPage || cargando"
+          class="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-40 transition-all focus:outline-none"
+        >
+          Siguiente
+        </button>
+      </div>
+
+    </div>
+
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
-
-const isProfileAddressModal = ref(false)
-const isEditModalOpen = ref(false)
-const showPassword = ref(false)
-// Creamos una función para que el bloque de abajo pueda cerrar el modal
-const cerrarModalDesdeAfuera = () => {
-  isProfileAddressModal.value = false
-}
-
-// Exponemos la variable y la función
-defineExpose({
-  isProfileAddressModal,
-  isEditModalOpen,
-  cerrarModalDesdeAfuera
-})
-</script>
 <script>
 import API from "@/assets/js/services/axios";
-import { useRoute } from "vue-router";
-import JSZip from "jszip";
-import Modal from '@/components/Modal/Modal.vue'
-import { saveAs } from "file-saver";
-import debounce from 'lodash.debounce';
 
 export default {
+  name: "TablaAcsDevicesHikcentral",
   data() {
     return {
-      idus: 0,
-      baseUrl: "/biometrico", // Ajustado para usar la base
+      baseUrl: "/biometrico",
       datadevice: [],
       cargando: false,
       currentPage: 1,
       lastPage: 1,
-      buscando: false, // Mantenido, pero no se usa en la lógica de paginación actual
-      debouncedFilter: null,
-      refreshKey: Date.now(),
-
+      pageSize: 10,
+      totalItems: 0,
+      searchQuery: "",
     };
   },
-  created() {
-    // Ahora sí puedes usar this.filterAndFetch
-    this.debouncedFilter = debounce(() => {
-      this.filterAndFetch();
-    }, 900);
-  },
-  async mounted() {
-    this.getDevices();
+  computed: {
+    // Filtrado local en tiempo real sobre los registros cargados de la página actual
+    dispositivosFiltrados() {
+      if (!this.searchQuery) return this.datadevice;
+      const q = this.searchQuery.toLowerCase();
+      return this.datadevice.filter(
+        (dev) =>
+          (dev.acsDevName && dev.acsDevName.toLowerCase().includes(q)) ||
+          (dev.acsDevIp && dev.acsDevIp.toLowerCase().includes(q))
+      );
+    },
+    // Genera los botones numéricos visibles de la paginación
+    paginasVisibles() {
+      const paginas = [];
+      const maxVisibles = 5;
+      let inicio = Math.max(1, this.currentPage - 2);
+      let fin = Math.min(this.lastPage, inicio + maxVisibles - 1);
 
+      if (fin - inicio < maxVisibles - 1) {
+        inicio = Math.max(1, fin - maxVisibles + 1);
+      }
+
+      for (let i = inicio; i <= fin; i++) {
+        paginas.push(i);
+      }
+      return paginas;
+    }
+  },
+  mounted() {
+    this.getDevices(1);
   },
   methods: {
-    abrirModalEdicion(user) {
-
-    },
-    async getDevices() {
+    async getDevices(page = 1) {
+      this.cargando = true;
       try {
-        // Petición al backend CON filtros incluidos
-        const response = await API.get(`${this.baseUrl}/devices`);
-        const response2 = await API.get(`${this.baseUrl}/get-information-door`);
+        const response = await API.get(`${this.baseUrl}/devices`, {
+          params: {
+            pageNo: page,
+            pageSize: this.pageSize
+          }
+        });
 
-        /*console.log("✅ Datos recibidos del backend:", response);
-        console.log("✅ Datos recibidos del backend:", response2);*/
-        this.datadevice = response.data.data.list || [];
+        if (response.data && response.data.success) {
+          this.datadevice = response.data.data || [];
+          this.currentPage = response.data.pagination.current_page;
+          this.lastPage = response.data.pagination.last_page;
+          this.totalItems = response.data.pagination.total;
+        } else if (response.data && response.data.code === "0") {
+          // Formato directo nativo de HikCentral
+          this.datadevice = response.data.data.list || [];
+          this.currentPage = response.data.data.pageNo || 1;
+          this.totalItems = response.data.data.total || 0;
+          this.lastPage = Math.ceil(this.totalItems / this.pageSize) || 1;
+        } else {
+          this.datadevice = [];
+        }
       } catch (error) {
-        console.warn("⚠️ Error al obtener datos:", error?.response?.data || error);
-        this.filteredpostulaciones = [];
-        this.currentPage = 1;
-        this.lastPage = 1;
+        console.warn("⚠️ Error al obtener dispositivos ACS:", error?.response?.data || error);
+        this.datadevice = [];
       } finally {
         this.cargando = false;
       }
     },
-  },
+
+    cambiarPagina(nuevaPagina) {
+      if (nuevaPagina >= 1 && nuevaPagina <= this.lastPage) {
+        this.getDevices(nuevaPagina);
+      }
+    },
+
+    onPageSizeChange() {
+      this.currentPage = 1;
+      this.getDevices(1);
+    }
+  }
 };
 </script>
-
-<style scoped>
-/* Add any additional styles here if needed */
-</style>

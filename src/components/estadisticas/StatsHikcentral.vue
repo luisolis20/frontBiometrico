@@ -24,7 +24,7 @@
         <div v-else class="flex flex-col h-full">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Control de Acceso
+              Dispositivos de Control de Acceso
             </h3>
             <div class="flex items-center gap-2">
               <!-- Botón Actualizar -->
@@ -62,6 +62,14 @@
                     <p class="text-gray-400 font-mono text-[11px]">{{ dev.acsDevIp || 'Sin IP' }}</p>
                   </div>
                 </div>
+              </div>
+            </div>
+             <div class="flex items-center justify-between mt-4 text-[11px] font-medium text-gray-500 dark:text-gray-400">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Conectados
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Desconectados
               </div>
             </div>
           </div>
@@ -168,69 +176,392 @@
     </div>
 
   </div>
-  <!-- ==========================================
-         TARJETA 3: ESTADÍSTICAS DE ACCESOS
-         ========================================== -->
-  <div
-    class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-all duration-300 hover:shadow-md overflow-visible z-10 row-span-2 lg:row-span-1">
+  <br>
+  <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-all duration-300 hover:shadow-md overflow-visible z-10 w-full">
+    
+    <!-- Destello decorativo de fondo -->
     <div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-0">
-      <div
-        class="absolute -bottom-6 -right-6 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-full blur-2xl">
-      </div>
+      <div class="absolute -bottom-6 -right-6 w-28 h-28 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-full blur-2xl"></div>
     </div>
 
-    <div class="p-6 flex flex-col h-full z-10 relative">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
-        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Accesos Estudiantes
-        </h3>
+    <div class="p-6 flex flex-col h-full relative z-10">
 
-        <!-- Filtros de Fecha -->
-        <div class="flex items-center gap-2 text-xs">
-          <select v-model="filtros.startMonth"
-            class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <option v-for="m in 12" :key="'sm' + m" :value="m">{{ m }}</option>
-          </select>
-          <select v-model="filtros.startYear"
-            class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <option v-for="y in anosDisponibles" :key="'sy' + y" :value="y">{{ y }}</option>
-          </select>
-          <span class="text-gray-500">-</span>
-          <select v-model="filtros.endMonth"
-            class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <option v-for="m in 12" :key="'em' + m" :value="m">{{ m }}</option>
-          </select>
-          <select v-model="filtros.endYear"
-            class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <option v-for="y in anosDisponibles" :key="'ey' + y" :value="y">{{ y }}</option>
-          </select>
-
-          <button @click="obtenerEstadisticas"
-            class="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg transition-colors focus:outline-none">
-            <svg class="w-4 h-4" :class="{ 'animate-spin': cargandoEstadisticas }" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-              </path>
+      <!-- Encabezado de la Tarjeta -->
+      <!-- Encabezado + Pestañas de Navegación -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2">
+          <div class="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
+            <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
             </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              Asistencia Facial - Estudiantes matriculados
+            </h3>
+            <p class="text-[11px] text-gray-400">Control de accesos de estudiantes matriculados</p>
+          </div>
+        </div>
+
+        <!-- Selector de Pestañas (Vista Gráfica vs Tabla) -->
+        <div class="flex items-center bg-gray-100 dark:bg-gray-700/60 p-1 rounded-xl text-xs font-medium self-stretch sm:self-auto">
+          <button 
+            @click="cambiarVista('grafico')" 
+            :class="vistaActiva === 'grafico' ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-xs' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+            class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all"
+          >
+            Gráfico
+          </button>
+          <button 
+            @click="cambiarVista('tabla')" 
+            :class="vistaActiva === 'tabla' ? 'bg-white dark:bg-gray-800 text-emerald-600 dark:text-emerald-400 shadow-xs' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+            class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all"
+          >
+            Tabla de Eventos
           </button>
         </div>
       </div>
 
-      <!-- Skeleton Loading -->
-      <div v-if="cargandoEstadisticas" class="animate-pulse flex flex-col h-[200px] gap-4 justify-end mt-4">
-        <div class="flex items-end gap-2 h-full">
-          <div v-for="i in 5" :key="i" class="w-1/5 bg-gray-200 dark:bg-gray-700 rounded-t"
-            :style="{ height: Math.floor(Math.random() * 80 + 20) + '%' }"></div>
+      <!-- Barra de Filtros Intuitiva -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-5 bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/60 text-xs">
+        <div>
+          <label class="block text-[10px] font-medium text-gray-400 mb-1">Rango Rápido</label>
+          <select 
+            v-model="rangoSeleccionado" 
+            @change="onRangoSelectChange" 
+            :disabled="cargandoEstadisticas"
+            class="w-full h-9 rounded-lg border-gray-200 bg-white px-2 py-1 text-gray-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+          >
+            <option value="custom">Personalizado</option>
+            <option value="hoy">Hoy</option>
+            <option value="ayer">Ayer</option>
+            <option value="esta_semana">Esta semana</option>
+            <option value="mes_actual">Mes actual</option>
+            <option value="mes_anterior">Mes anterior</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-medium text-gray-400 mb-1">Fecha Inicio</label>
+          <input 
+            type="date" 
+            v-model="beginTime" 
+            @change="onCustomDateChange" 
+            :disabled="cargandoEstadisticas"
+            class="w-full h-9 rounded-lg border-gray-200 bg-white px-2 py-1 text-gray-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200" 
+          />
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-medium text-gray-400 mb-1">Fecha Fin</label>
+          <input 
+            type="date" 
+            v-model="endTime" 
+            @change="onCustomDateChange" 
+            :disabled="cargandoEstadisticas"
+            class="w-full h-9 rounded-lg border-gray-200 bg-white px-2 py-1 text-gray-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200" 
+          />
+        </div>
+      </div>
+      <div v-if="vistaActiva === 'grafico'" class="flex flex-col flex-1">
+        <!-- Métricas Resumen (KPIs) -->
+        <div v-if="estadisticasData" class="grid grid-cols-3 gap-2 mb-4 text-center">
+          <div class="bg-gray-50 dark:bg-gray-700/40 p-2 rounded-xl border border-gray-100 dark:border-gray-700">
+            <span class="block text-[10px] text-gray-400 uppercase font-semibold">Total matriculados</span>
+            <span class="text-sm font-bold text-gray-800 dark:text-white">{{ estadisticasData.total_matriculados }}</span>
+          </div>
+          <div class="bg-emerald-50/60 dark:bg-emerald-950/20 p-2 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+            <span class="block text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-semibold">Con Acceso</span>
+            <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">{{ estadisticasData.con_acceso }}</span>
+          </div>
+          <div class="bg-rose-50/60 dark:bg-rose-950/20 p-2 rounded-xl border border-rose-100 dark:border-rose-900/30">
+            <span class="block text-[10px] text-rose-600 dark:text-rose-400 uppercase font-semibold">Sin Registro</span>
+            <span class="text-sm font-bold text-rose-600 dark:text-rose-400">{{ estadisticasData.sin_acceso }}</span>
+          </div>
+        </div>
+
+        <!-- Estado de Carga (Skeleton) -->
+        <div v-if="cargandoEstadisticas" class="animate-pulse flex flex-col items-center justify-center flex-1 min-h-[200px] my-2">
+          <div class="w-36 h-36 rounded-full border-8 border-gray-200 dark:border-gray-700 border-t-emerald-500 animate-spin"></div>
+          <span class="mt-3 text-xs text-gray-400 font-medium">Consultando eventos de puertas...</span>
+        </div>
+
+        <!-- Gráfico ApexCharts (Donut) -->
+        <div v-show="!cargandoEstadisticas" class="flex-1 w-full flex items-center justify-center min-h-[200px]">
+          <apexchart 
+            v-if="estadisticasData && !cargandoEstadisticas"
+            type="donut" 
+            width="100%" 
+            height="220"
+            :options="chartOptions" 
+            :series="chartSeries"
+          ></apexchart>
+        </div>
+      </div>
+      <!-- ================= VISTA 2: TABLA DE EVENTOS ================= -->
+      <div v-else-if="vistaActiva === 'tabla'" class="flex flex-col flex-1">
+        
+        <!-- Skeleton Tabla -->
+        <div v-if="cargando" class="animate-pulse space-y-2 py-4">
+          <div v-for="i in 5" :key="i" class="h-10 bg-gray-100 dark:bg-gray-700/50 rounded-lg w-full"></div>
+        </div>
+
+        <!-- Tabla de Datos -->
+        <div v-else class="overflow-x-auto flex-1">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700 text-gray-400 uppercase text-[10px] font-semibold">
+                <th class="py-2.5 px-3">Estudiante</th>
+                <th class="py-2.5 px-3">Puerta</th>
+                <th class="py-2.5 px-3">Fecha y Hora</th>
+                <th class="py-2.5 px-3 text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50 text-gray-700 dark:text-gray-300">
+              <tr v-if="eventosTabla.length === 0">
+                <td colspan="4" class="py-6 text-center text-gray-400">
+                  No se encontraron registros en este rango de fechas.
+                </td>
+              </tr>
+              <tr v-for="evt in eventosTabla" :key="evt.eventId" class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                <td class="py-2.5 px-3">
+                  <p class="font-bold text-gray-800 dark:text-gray-100 truncate max-w-[180px]">{{ evt.personName }}</p>
+                  <p class="text-[10px] text-gray-400 font-mono">CI: {{ evt.cardNo }} • {{ evt.carrera }}</p>
+                </td>
+                <td class="py-2.5 px-3 font-medium text-gray-600 dark:text-gray-300">
+                  {{ evt.doorName }}
+                </td>
+                <td class="py-2.5 px-3 text-gray-500 font-mono text-[11px]">
+                  {{ formatearFecha(evt.eventTime) }}
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                    Matriculado
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación de Tabla -->
+        <div v-if="pagination.last_page > 1" class="flex items-center justify-between pt-3 mt-auto border-t border-gray-100 dark:border-gray-700 text-xs">
+          <span class="text-gray-400 text-[11px]">Página {{ pagination.current_page }} de {{ pagination.last_page }}</span>
+          <div class="flex gap-1">
+            <button 
+              @click="cambiarPaginaTabla(pagination.current_page - 1)"
+              :disabled="pagination.current_page === 1 || cargando"
+              class="px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <button 
+              @click="cambiarPaginaTabla(pagination.current_page + 1)"
+              :disabled="pagination.current_page === pagination.last_page || cargando"
+              class="px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  <br>
+  <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-all duration-300 hover:shadow-md overflow-visible z-10 w-full">
+    
+    <!-- Destello decorativo de fondo (Azul/Indigo para diferenciar del de estudiantes) -->
+    <div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-0">
+      <div class="absolute -bottom-6 -right-6 w-28 h-28 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-full blur-2xl"></div>
+    </div>
+
+    <div class="p-6 flex flex-col h-full relative z-10">
+
+      <!-- Encabezado + Pestañas de Navegación -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2">
+          <div class="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
+            <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              Asistencia de Personal
+            </h3>
+            <p class="text-[11px] text-gray-400">Control de accesos para empleados activos</p>
+          </div>
+        </div>
+
+        <!-- Selector de Pestañas -->
+        <div class="flex items-center bg-gray-100 dark:bg-gray-700/60 p-1 rounded-xl text-xs font-medium self-stretch sm:self-auto">
+          <button 
+            @click="cambiarPersonalVista('grafico')" 
+            :class="vistaActivaPersonal === 'grafico' ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+            class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all"
+          >
+            Gráfico
+          </button>
+          <button 
+            @click="cambiarPersonalVista('tabla')" 
+            :class="vistaActivaPersonal === 'tabla' ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+            class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg transition-all"
+          >
+            Tabla de Eventos
+          </button>
         </div>
       </div>
 
-      <!-- Gráfico ApexCharts -->
-      <div v-else class="w-full mt-2 h-[200px]">
-        <div v-if="estadisticas.length === 0" class="flex items-center justify-center h-full text-sm text-gray-500">
-          No hay datos para este rango.
+      <!-- Barra de Filtros -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4 bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700/60 text-xs">
+        <div>
+          <label class="block text-[10px] font-medium text-gray-400 mb-1">Rango Rápido</label>
+          <select 
+            v-model="rangoPersonalSeleccionado" 
+            @change="onRangoPersonalSelectChange" 
+            :disabled="cargandoPersonalEstadisticas"
+            class="w-full h-9 rounded-lg border-gray-200 bg-white px-2 py-1 text-gray-800 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+          >
+            <option value="custom">Personalizado</option>
+            <option value="hoy">Hoy</option>
+            <option value="ayer">Ayer</option>
+            <option value="esta_semana">Esta semana</option>
+            <option value="mes_actual">Mes actual</option>
+            <option value="mes_anterior">Mes anterior</option>
+          </select>
         </div>
-        <apexchart v-else type="bar" height="100%" :options="chartOptions" :series="chartSeries"></apexchart>
+
+        <div>
+          <label class="block text-[10px] font-medium text-gray-400 mb-1">Fecha Inicio</label>
+          <input 
+            type="date" 
+            v-model="beginTimePersonal" 
+            @change="onCustomDatePersonalChange" 
+            :disabled="cargandoPersonalEstadisticas"
+            class="w-full h-9 rounded-lg border-gray-200 bg-white px-2 py-1 text-gray-800 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200" 
+          />
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-medium text-gray-400 mb-1">Fecha Fin</label>
+          <input 
+            type="date" 
+            v-model="endTimePersonal" 
+            @change="onCustomDatePersonalChange" 
+            :disabled="cargandoPersonalEstadisticas"
+            class="w-full h-9 rounded-lg border-gray-200 bg-white px-2 py-1 text-gray-800 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200" 
+          />
+        </div>
       </div>
+
+      <!-- ================= VISTA 1: GRÁFICO DONUT ================= -->
+      <div v-if="vistaActivaPersonal === 'grafico'" class="flex flex-col flex-1">
+        <!-- KPIs -->
+        <div v-if="estadisticasPersonalData" class="grid grid-cols-3 gap-2 mb-4 text-center">
+          <div class="bg-gray-50 dark:bg-gray-700/40 p-2 rounded-xl border border-gray-100 dark:border-gray-700">
+            <span class="block text-[10px] text-gray-400 uppercase font-semibold">Total Personal</span>
+            <span class="text-sm font-bold text-gray-800 dark:text-white">{{ estadisticasPersonalData.total_personal }}</span>
+          </div>
+          <div class="bg-indigo-50/60 dark:bg-indigo-950/20 p-2 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+            <span class="block text-[10px] text-indigo-600 dark:text-indigo-400 uppercase font-semibold">Con Acceso</span>
+            <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">{{ estadisticasPersonalData.con_acceso }}</span>
+          </div>
+          <div class="bg-rose-50/60 dark:bg-rose-950/20 p-2 rounded-xl border border-rose-100 dark:border-rose-900/30">
+            <span class="block text-[10px] text-rose-600 dark:text-rose-400 uppercase font-semibold">Sin Registro</span>
+            <span class="text-sm font-bold text-rose-600 dark:text-rose-400">{{ estadisticasPersonalData.sin_acceso }}</span>
+          </div>
+        </div>
+
+        <!-- Skeleton Loading -->
+        <div v-if="cargandoPersonalEstadisticas" class="animate-pulse flex flex-col items-center justify-center flex-1 min-h-[200px] my-2">
+          <div class="w-36 h-36 rounded-full border-8 border-gray-200 dark:border-gray-700 border-t-emerald-500 animate-spin"></div>
+          <span class="mt-3 text-xs text-gray-400 font-medium">Consultando eventos de puertas...</span>
+        </div>
+
+        <!-- Componente ApexCharts -->
+        <div v-show="!cargandoPersonalEstadisticas" class="flex-1 w-full flex items-center justify-center min-h-[200px]">
+          <apexchart 
+            v-if="estadisticasPersonalData && !cargandoPersonalEstadisticas"
+            type="donut" 
+            width="100%" 
+            height="220"
+            :options="chartOptionsPersonal" 
+            :series="chartSeriesPersonal"
+          ></apexchart>
+        </div>
+      </div>
+
+      <!-- ================= VISTA 2: TABLA DE EVENTOS ================= -->
+      <div v-else-if="vistaActivaPersonal === 'tabla'" class="flex flex-col flex-1">
+        
+        <!-- Skeleton Tabla -->
+        <div v-if="cargandoPersonal" class="animate-pulse space-y-2 py-4">
+          <div v-for="i in 5" :key="i" class="h-10 bg-gray-100 dark:bg-gray-700/50 rounded-lg w-full"></div>
+        </div>
+
+        <!-- Tabla de Datos -->
+        <div v-else class="overflow-x-auto flex-1">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700 text-gray-400 uppercase text-[10px] font-semibold">
+                <th class="py-2.5 px-3">Empleado</th>
+                <th class="py-2.5 px-3">Puerta</th>
+                <th class="py-2.5 px-3">Fecha y Hora</th>
+                <th class="py-2.5 px-3 text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50 text-gray-700 dark:text-gray-300">
+              <tr v-if="eventosTablaPersonal.length === 0">
+                <td colspan="4" class="py-6 text-center text-gray-400">
+                  No se encontraron eventos de personal en este rango.
+                </td>
+              </tr>
+              <tr v-for="evt in eventosTablaPersonal" :key="evt.eventId" class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                <td class="py-2.5 px-3">
+                  <p class="font-bold text-gray-800 dark:text-gray-100 truncate max-w-[200px]">{{ evt.personName }}</p>
+                  <p class="text-[10px] text-gray-400 font-mono">CI: {{ evt.cardNo }} • {{ evt.tipoEmpleado }}</p>
+                </td>
+                <td class="py-2.5 px-3 font-medium text-gray-600 dark:text-gray-300">
+                  {{ evt.doorName }}
+                </td>
+                <td class="py-2.5 px-3 text-gray-500 font-mono text-[11px]">
+                  {{ formatearFecha(evt.eventTime) }}
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300">
+                    Personal Activo
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación de Tabla -->
+        <div v-if="paginationPersonal.last_page > 1" class="flex items-center justify-between pt-3 mt-auto border-t border-gray-100 dark:border-gray-700 text-xs">
+          <span class="text-gray-400 text-[11px]">Página {{ paginationPersonal.current_page }} de {{ paginationPersonal.last_page }}</span>
+          <div class="flex gap-1">
+            <button 
+              @click="cambiarPaginaTablaPersonal(paginationPersonal.current_page - 1)"
+              :disabled="paginationPersonal.current_page === 1 || cargandoPersonal"
+              class="px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <button 
+              @click="cambiarPaginaTablaPersonal(paginationPersonal.current_page + 1)"
+              :disabled="paginationPersonal.current_page === paginationPersonal.last_page || cargandoPersonal"
+              class="px-2.5 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   </div>
 </template>
@@ -241,16 +572,15 @@ import VueApexCharts from "vue3-apexcharts";
 
 export default {
   name: 'StatsHikcentral',
-  components: {
-    apexchart: VueApexCharts,
-  },
+  components: { apexchart: VueApexCharts },
   data() {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
     return {
       
       baseUrl: "/biometrico",
-      
+      vistaActiva: 'grafico',
+      vistaActivaPersonal: 'grafico',
+      cargando: false,
+      cargandoPersonal: false,
       // Control de Acceso
       cargandoDispositivos: true,
       dispositivos: [],
@@ -259,14 +589,28 @@ export default {
       cargandoCamaras: true,
       camaras: [],
       cargandoEstadisticas: false,
-      estadisticas: [],
-      filtros: {
-        startMonth: currentMonth === 1 ? 12 : currentMonth - 1, // Mes anterior por defecto
-        startYear: currentMonth === 1 ? currentYear - 1 : currentYear,
-        endMonth: currentMonth,
-        endYear: currentYear
+      estadisticasData: null,
+      eventosTabla: [],
+      pagination: {
+        current_page: 1,
+        last_page: 1,
+        total: 0
       },
-      anosDisponibles: [currentYear - 2, currentYear - 1, currentYear, currentYear + 1]
+      rangoSeleccionado: 'mes_actual',
+      beginTime: '',
+      endTime: '',
+      // Personal
+      cargandoPersonalEstadisticas: false,
+      estadisticasPersonalData: null,
+      eventosTablaPersonal: [],
+      paginationPersonal: {
+        current_page: 1,
+        last_page: 1,
+        total: 0
+      },
+      rangoPersonalSeleccionado: 'mes_actual',
+      beginTimePersonal: '',
+      endTimePersonal: '',
     };
   },
   computed: {
@@ -285,74 +629,175 @@ export default {
       if (this.totalCamaras === 0) return 0;
       return Math.round((this.camarasOnline / this.totalCamaras) * 100);
     },
-    // Computados Gráficos (ApexCharts)
     chartSeries() {
+      if (!this.estadisticasData) return [0, 0];
       return [
-        {
-          name: 'Total Accesos',
-          data: this.estadisticas.map(item => item.total_accesos)
-        },
-        {
-          name: 'Estudiantes Únicos',
-          data: this.estadisticas.map(item => item.estudiantes_unicos)
-        }
+        Number(this.estadisticasData.con_acceso) || 0, 
+        Number(this.estadisticasData.sin_acceso) || 0
       ];
     },
     chartOptions() {
+      const total = this.estadisticasData ? this.estadisticasData.total_matriculados : 1;
+      const conAcceso = this.estadisticasData ? this.estadisticasData.con_acceso : 0;
+      const porcentaje = total > 0 ? Math.round((conAcceso / total) * 100) : 0;
+
       return {
-        chart: {
-          type: 'bar',
-          toolbar: { show: false },
-          background: 'transparent',
-          fontFamily: 'inherit'
+        chart: { 
+          type: 'donut', 
+          fontFamily: 'inherit', 
+          background: 'transparent' 
         },
-        colors: ['#3b82f6', '#10b981'], // Azul y Verde esmeralda
-        plotOptions: {
-          bar: {
-            horizontal: false,
-            columnWidth: '55%',
-            borderRadius: 4
-          },
-        },
+        labels: ['Con Registro de Acceso', 'Sin Registro de Acceso'],
+        colors: ['#10b981', '#f43f5e'], // Verde Esmeralda y Rojo Rosado
+        stroke: { show: false },
         dataLabels: { enabled: false },
-        stroke: { show: true, width: 2, colors: ['transparent'] },
-        xaxis: {
-          categories: this.estadisticas.map(item => item.mes),
-          labels: { style: { colors: '#9ca3af' } },
-          axisBorder: { show: false },
-          axisTicks: { show: false }
+        plotOptions: {
+          pie: {
+            donut: {
+              size: '72%',
+              labels: {
+                show: true,
+                name: { 
+                  show: true, 
+                  fontSize: '11px', 
+                  color: '#9ca3af', 
+                  offsetY: -4 
+                },
+                value: { 
+                  show: true, 
+                  fontSize: '22px', 
+                  fontWeight: '700', 
+                  color: '#10b981', 
+                  formatter: () => `${porcentaje}%` 
+                },
+                total: { 
+                  show: true, 
+                  showAlways: true, 
+                  label: 'ASISTENCIA', 
+                  fontSize: '10px', 
+                  color: '#9ca3af', 
+                  formatter: () => `${porcentaje}%` 
+                }
+              }
+            }
+          }
         },
-        yaxis: {
-          labels: { style: { colors: '#9ca3af' } }
+        legend: { 
+          position: 'bottom', 
+          fontSize: '11px', 
+          labels: { colors: '#9ca3af' },
+          markers: { radius: 12 } 
         },
-        grid: {
-          borderColor: '#374151',
-          strokeDashArray: 4,
-          yaxis: { lines: { show: true } }
-        },
-        fill: { opacity: 1 },
-        theme: { mode: 'light' }, // Cambiar dinámicamente si usas un manejador de Dark Mode global
-        legend: {
-          position: 'top',
-          labels: { colors: '#9ca3af' }
-        },
-        tooltip: {
-          theme: 'dark',
-          y: { formatter: function (val) { return val + " eventos" } }
+        tooltip: { 
+          theme: 'dark', 
+          y: { formatter: (val) => `${val} Estudiantes` } 
         }
       };
-    }
+    },
+    //Personal
+    chartSeriesPersonal() {
+      if (!this.estadisticasPersonalData) return [0, 0];
+      return [
+        Number(this.estadisticasPersonalData.con_acceso) || 0, 
+        Number(this.estadisticasPersonalData.sin_acceso) || 0
+      ];
+    },
+    chartOptionsPersonal() {
+      const total = this.estadisticasPersonalData ? this.estadisticasPersonalData.total_personal : 1;
+      const conAcceso = this.estadisticasPersonalData ? this.estadisticasPersonalData.con_acceso : 0;
+      const porcentaje = total > 0 ? Math.round((conAcceso / total) * 100) : 0;
+
+      return {
+        chart: { 
+          type: 'donut', 
+          fontFamily: 'inherit', 
+          background: 'transparent' 
+        },
+        labels: ['Con Registro de Acceso', 'Sin Registro de Acceso'],
+        colors: ['#10b981', '#f43f5e'], // Verde Esmeralda y Rojo Rosado
+        stroke: { show: false },
+        dataLabels: { enabled: false },
+        plotOptions: {
+          pie: {
+            donut: {
+              size: '72%',
+              labels: {
+                show: true,
+                name: { 
+                  show: true, 
+                  fontSize: '11px', 
+                  color: '#9ca3af', 
+                  offsetY: -4 
+                },
+                value: { 
+                  show: true, 
+                  fontSize: '22px', 
+                  fontWeight: '700', 
+                  color: '#10b981', 
+                  formatter: () => `${porcentaje}%` 
+                },
+                total: { 
+                  show: true, 
+                  showAlways: true, 
+                  label: 'ASISTENCIA', 
+                  fontSize: '10px', 
+                  color: '#9ca3af', 
+                  formatter: () => `${porcentaje}%` 
+                }
+              }
+            }
+          }
+        },
+        legend: { 
+          position: 'bottom', 
+          fontSize: '11px', 
+          labels: { colors: '#9ca3af' },
+          markers: { radius: 12 } 
+        },
+        tooltip: { 
+          theme: 'dark', 
+          y: { formatter: (val) => `${val} Personal` } 
+        }
+      };
+    },
   },
   mounted() {
+    this.aplicarRangoFecha();
+    this.aplicarRangoFechaPersonal();
     this.cargarTodo();
   },
   methods: {
     cargarTodo() {
       this.obtenerDispositivos();
       this.obtenerCamaras();
-      this.obtenerEstadisticas();
+      this.cargarVistaActual();
+      this.cargarPersonalVistaActual();
+    },
+    cambiarVista(vista) {
+      this.vistaActiva = vista;
+      this.cargarVistaActual();
+    },
+    //Personal
+    cambiarPersonalVista(vista) {
+      this.vistaActivaPersonal = vista;
+      this.cargarPersonalVistaActual();
     },
 
+    cargarVistaActual() {
+      if (this.vistaActiva === 'grafico') {
+        this.obtenerEstadisticas();
+      } else {
+        this.obtenerTablaEventos();
+      }
+    },
+    //Personal
+    cargarPersonalVistaActual() {
+      if (this.vistaActivaPersonal === 'grafico') {
+        this.obtenerEstadisticasPersonal();
+      } else {
+        this.obtenerTablaEventosPersonal();
+      }
+    },
     async obtenerDispositivos() {
       this.cargandoDispositivos = true;
       try {
@@ -390,20 +835,218 @@ export default {
     async obtenerEstadisticas() {
       this.cargandoEstadisticas = true;
       try {
-        // Asegúrate de que la ruta coincida con la que creaste en el backend
-        const response = await API.post(`${this.baseUrl}/eventos-estadisticas-estudiantes`, this.filtros);
-        console.log("Respuesta de cámaras:", response); 
+        const payload = { beginTime: this.beginTime, endTime: this.endTime };
+        // Ajusta la ruta a tu API de Laravel
+        const response = await API.post(`${this.baseUrl}/eventos-estadisticas-estudiantes`, payload);
+        
         if (response.data && response.data.success) {
-          this.estadisticas = response.data.data || [];
+          this.estadisticasData = response.data.data;
         } else {
-          this.estadisticas = [];
+          this.estadisticasData = { total_matriculados: 0, con_acceso: 0, sin_acceso: 0 };
         }
       } catch (error) {
-        console.error("Error al cargar estadísticas:", error);
-        this.estadisticas = [];
+        console.error("Error estadísticas:", error);
+        this.estadisticasData = null;
       } finally {
         this.cargandoEstadisticas = false;
       }
+    },
+    //Personal
+    async obtenerEstadisticasPersonal() {
+      this.cargandoPersonalEstadisticas = true;
+      try {
+        const payload = { beginTime: this.beginTimePersonal, endTime: this.endTimePersonal };
+        // Ajusta la ruta a tu API de Laravel
+        const response = await API.post(`${this.baseUrl}/eventos-estadisticas-personal`, payload);
+        
+        if (response.data && response.data.success) {
+          this.estadisticasPersonalData = response.data.data;
+        } else {
+          this.estadisticasPersonalData = { total_personal: 0, con_acceso: 0, sin_acceso: 0 };
+        }
+      } catch (error) {
+        console.error("Error estadísticas:", error);
+        this.estadisticasPersonalData = null;
+      } finally {
+        this.cargandoPersonalEstadisticas = false;
+      }
+    },
+    aplicarRangoFecha() {
+      if (this.rangoSeleccionado === 'custom') return;
+
+      const hoy = new Date();
+      const formatoFecha = (d) => {
+        let mes = '' + (d.getMonth() + 1);
+        let dia = '' + d.getDate();
+        const anio = d.getFullYear();
+
+        if (mes.length < 2) mes = '0' + mes;
+        if (dia.length < 2) dia = '0' + dia;
+
+        return [anio, mes, dia].join('-');
+      };
+
+      if (this.rangoSeleccionado === 'hoy') {
+        this.beginTime = formatoFecha(hoy);
+        this.endTime = formatoFecha(hoy);
+      } else if (this.rangoSeleccionado === 'ayer') {
+        const ayer = new Date(hoy);
+        ayer.setDate(hoy.getDate() - 1);
+        this.beginTime = formatoFecha(ayer);
+        this.endTime = formatoFecha(ayer);
+      } else if (this.rangoSeleccionado === 'esta_semana') {
+        const diaSemana = hoy.getDay();
+        const distLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+        const distViernes = diaSemana === 0 ? -2 : 5 - diaSemana;
+        
+        const lunes = new Date(hoy);
+        lunes.setDate(hoy.getDate() + distLunes);
+        
+        const viernes = new Date(hoy);
+        viernes.setDate(hoy.getDate() + distViernes);
+
+        this.beginTime = formatoFecha(lunes);
+        this.endTime = formatoFecha(viernes);
+      } else if (this.rangoSeleccionado === 'mes_actual') {
+        const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+
+        this.beginTime = formatoFecha(primerDiaMes);
+        this.endTime = formatoFecha(ultimoDiaMes);
+      } else if (this.rangoSeleccionado === 'mes_anterior') {
+        const primerDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        const ultimoDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+
+        this.beginTime = formatoFecha(primerDiaMesAnterior);
+        this.endTime = formatoFecha(ultimoDiaMesAnterior);
+      }
+    },
+    //Personal
+    aplicarRangoFechaPersonal() {
+      if (this.rangoPersonalSeleccionado === 'custom') return;      
+      const hoy = new Date();
+      const formatoFecha = (d) => {
+        let mes = '' + (d.getMonth() + 1), dia = '' + d.getDate(), anio = d.getFullYear();
+        if (mes.length < 2) mes = '0' + mes;
+        if (dia.length < 2) dia = '0' + dia;
+        return [anio, mes, dia].join('-');
+      };
+      if (this.rangoPersonalSeleccionado === 'hoy') {
+        this.beginTimePersonal = formatoFecha(hoy); this.endTimePersonal = formatoFecha(hoy);
+      } else if (this.rangoPersonalSeleccionado === 'ayer') {
+        const ayer = new Date(hoy); ayer.setDate(hoy.getDate() - 1);
+        this.beginTimePersonal = formatoFecha(ayer); this.endTimePersonal = formatoFecha(ayer);
+      } else if (this.rangoPersonalSeleccionado === 'esta_semana') {
+        const diaSemana = hoy.getDay(), distLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+        const distViernes = diaSemana === 0 ? -2 : 5 - diaSemana;
+        
+        const lunes = new Date(hoy); lunes.setDate(hoy.getDate() + distLunes);
+        const viernes = new Date(hoy); viernes.setDate(hoy.getDate() + distViernes);
+        
+        this.beginTimePersonal = formatoFecha(lunes); this.endTimePersonal = formatoFecha(viernes);
+      } else if (this.rangoPersonalSeleccionado === 'mes_actual') {
+        const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+        
+        this.beginTimePersonal = formatoFecha(primerDiaMes); this.endTimePersonal = formatoFecha(ultimoDiaMes);
+      } else if (this.rangoPersonalSeleccionado === 'mes_anterior') {
+        const primerDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        const ultimoDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+        
+        this.beginTimePersonal = formatoFecha(primerDiaMesAnterior); this.endTimePersonal = formatoFecha(ultimoDiaMesAnterior);
+      }
+    },
+
+    onRangoSelectChange() {
+      this.aplicarRangoFecha();
+      this.cargarVistaActual();
+    },
+    //Personal
+    onRangoPersonalSelectChange() {
+      this.aplicarRangoFechaPersonal();
+      this.cargarPersonalVistaActual();
+    },
+
+    onCustomDateChange() {
+      this.rangoSeleccionado = 'custom';
+      if (this.beginTime && this.endTime) {
+        this.cargarVistaActual();
+      }
+    },
+    //Personal
+    onCustomDatePersonalChange() {
+      this.rangoPersonalSeleccionado = 'custom';
+      if (this.beginTimePersonal && this.endTimePersonal) {
+        this.cargarPersonalVistaActual();
+      }
+    },
+    async obtenerTablaEventos(pagina = 1) {
+      if (!this.beginTime || !this.endTime) return;
+
+      this.cargando = true;
+      try {
+        const response = await API.post(`${this.baseUrl}/eventos-tabla-estudiantes`, {
+          beginTime: this.beginTime,
+          endTime: this.endTime,
+          page: pagina,
+          perPage: 10
+        });
+
+        if (response.data && response.data.success) {
+          this.eventosTabla = response.data.data || [];
+          this.pagination = response.data.pagination || this.pagination;
+        }
+      } catch (error) {
+        console.error("Error tabla eventos:", error);
+      } finally {
+        this.cargando = false;
+      }
+    },
+    //Personal
+    async obtenerTablaEventosPersonal(pagina = 1) {
+      if (!this.beginTimePersonal || !this.endTimePersonal) return;      
+      this.cargandoPersonal = true;
+      try {
+        const response = await API.post(`${this.baseUrl}/eventos-tabla-personal`, {
+          beginTime: this.beginTimePersonal,
+          endTime: this.endTimePersonal,
+          page: pagina,
+          perPage: 10
+        });
+        console.log("✅ Eventos obtenidos tabla:", response);
+        if (response.data && response.data.success) {
+          this.eventosTablaPersonal = response.data.data || [];
+          this.paginationPersonal = response.data.pagination || this.paginationPersonal;
+        }
+      } catch (error) {
+        console.error("Error tabla eventos:", error);
+      } finally {
+        this.cargandoPersonal = false;
+      }
+    },
+
+    cambiarPaginaTabla(nuevaPagina) {
+      if (nuevaPagina >= 1 && nuevaPagina <= this.pagination.last_page) {
+        this.obtenerTablaEventos(nuevaPagina);
+      }
+    },
+    //Personal
+    cambiarPaginaTablaPersonal(nuevaPagina) {
+      if (nuevaPagina >= 1 && nuevaPagina <= this.paginationPersonal.last_page) {
+        this.obtenerTablaEventosPersonal(nuevaPagina);
+      }
+    },
+
+    formatearFecha(fechaIso) {
+      if (!fechaIso) return '-';
+      const f = new Date(fechaIso);
+      return f.toLocaleString('es-EC', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
     }
   },
 };

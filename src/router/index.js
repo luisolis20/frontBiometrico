@@ -7,6 +7,7 @@ import Registro_IndvDoc from '../views/FotosViews/Registro_IndvDoc.vue'
 import Registro_IndvEst from '../views/FotosViews/Registro_IndvEst.vue'
 import Registro_IndvPreEst from '../views/FotosViews/Registro_IndvPreEst.vue'
 import Devices_allViews from '../views/Devices/Devices_allViews.vue'
+import Devices_CamarasViews from '../views/Devices/Devices_CamarasViews.vue'
 import InvitadosViews from '../views/FotosViews/InvitadosViews.vue'
 import AsistenciaIndividualBeta from '../views/Asistencia/AsistenciaIndividualBetaViews.vue'
 import AsistenciaMasiva_allViews from '../views/Asistencia/AsistenciaMasiva_allViews.vue'
@@ -58,6 +59,11 @@ const routes = [
     path: '/devices',
     name: 'Devices',
     component: Devices_allViews
+  },
+  {
+    path: '/camaras',
+    name: 'Camaras',
+    component: Devices_CamarasViews
   },
   {
     path: '/invitados',

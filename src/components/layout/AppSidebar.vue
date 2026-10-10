@@ -230,6 +230,7 @@ const menuData = [
         name: "Devices",
         subItems: [
           { name: "D-AC", path: "/devices", pro: false },
+          { name: "Cámaras", path: "/camaras", pro: false, new: true },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
         ],
       },
