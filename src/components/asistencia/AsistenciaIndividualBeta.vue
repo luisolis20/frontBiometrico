@@ -1,146 +1,128 @@
 <template>
     <div>
-        <form class="flex-grow">
-            <div class="relative">
-                <div class="absolute -translate-y-1/2 left-4 top-1/2 flex items-center justify-center">
-                    <svg v-if="!cargando" class="fill-gray-500 dark:fill-gray-400" width="20" height="20"
-                        viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                            fill="" />
+        <form class="flex-grow" @submit.prevent="buscar">
+            <div class="relative group">
+                <button type="submit" :disabled="cargando"
+                    class="absolute -translate-y-1/2 left-4 top-1/2 transition-opacity disabled:opacity-50">
+                    <svg v-if="cargando" class="animate-spin h-5 w-5 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span v-else
-                        class="inline-block w-5 h-5 border-2 border-gray-300 border-t-brand-500 rounded-full animate-spin"></span>
-                </div>
-
+                    <svg v-else class="fill-gray-400 group-focus-within:fill-brand-500 transition-colors" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z" />
+                    </svg>
+                </button>
                 <input type="text" placeholder="Ingresa la cédula a buscar..." v-model="searchQuery"
-                    @input="debouncedFilter" @keypress="onlyNumbers" @keyup.enter="buscar" :disabled="cargando"
-                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]" />
+                    :disabled="cargando" @input="onInputValidador" @keypress="onlyNumbers" @keyup.enter="buscar" maxlength="10"
+                    class="h-12 w-full rounded-xl border border-gray-200 bg-white py-3 pl-12 pr-4 text-sm text-gray-800 shadow-sm transition-all placeholder:text-gray-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900/50 dark:text-white/90 dark:placeholder:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed xl:w-[480px]" />
             </div>
         </form>
         <br>
 
-        <div v-if="!estencontrado"
-            class="p-4 mb-4 text-sm text-amber-800 rounded-lg bg-amber-50 dark:bg-gray-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-            <span class="font-bold">¡Atención!</span> No se ha encontrado ningún registro. Verifique si el personal
-            posee una foto o está habilitado.
+        <div v-if="!estencontrado" class="p-5 rounded-xl bg-amber-50 border border-amber-100 dark:bg-amber-900/20 dark:border-amber-800/30 flex gap-4 items-start shadow-sm">
+            <div class="text-amber-500 bg-amber-100 dark:bg-amber-900/50 p-2 rounded-full shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <div>
+                <h5 class="text-base font-bold text-amber-800 dark:text-amber-400">Personal no localizado</h5>
+                <p class="text-sm text-amber-700 dark:text-amber-300 mt-1">No se ha encontrado ningún registro. Verifique si el personal posee una foto cargada o está habilitado en el sistema.</p>
+            </div>
         </div>
-        <div v-else-if="!personaData && !cargando" class="text-sm text-gray-500 dark:text-gray-400">
-            Ingrese la cédula del personal para ver su información y sus marcaciones en HikCentral (dispositivos de
-            reconocimiento facial).
+        <div v-else-if="!personaData && !cargando" class="p-6 rounded-2xl bg-green-to-r from-green-50 to-green-50 border border-green-100 dark:from-green-900/10 dark:to-green-900/10 dark:border-green-900/30 text-center shadow-sm">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400 mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-green-900 dark:text-green-300 mb-2">Consulta de Personal y Accesos</h3>
+            <p class="text-sm text-green-700/80 dark:text-green-400/80 max-w-xl mx-auto">
+                Ingrese la cédula del personal en la barra superior para ver su información de perfil y las marcaciones registradas en los dispositivos de reconocimiento facial (HikCentral).
+            </p>
         </div>
 
-        <div v-if="personaData && estencontrado">
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <div class="flex flex-col items-center w-full gap-6 xl:flex-row">
-                        <div
-                            class="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 bg-gray-100 flex items-center justify-center">
-                            <img :src="getPhotoUrl(personaData.CIInfPer)" @error="handleImageError" alt="user"
-                                class="object-cover w-full h-full" />
-                        </div>
-                        <div class="order-3 xl:order-2">
-                            <h4
-                                class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                                {{ personaData.NombInfPer + " " + personaData.ApellInfPer + " " +
-                                    personaData.ApellMatInfPer }}
-                            </h4>
-                            <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ personaData.CIInfPer }}</p>
-                                <div class="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400"
-                                    v-if="personaData.TipoInfPer === 'D'">Docente</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400"
-                                    v-if="personaData.TipoInfPer === 'A'">Administrativo</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400"
-                                    v-if="personaData.TipoInfPer === 'T'">Trabajador</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400"
-                                    v-if="personaData.TipoInfPer === 'TDO'">Tecnico Docente</p>
-                            </div>
-                        </div>
+        <div v-if="personaData && estencontrado" class="space-y-6">
+            <!-- Tarjeta Perfil Principal -->
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row items-center gap-6">
+                <div class="w-24 h-24 shrink-0 rounded-full overflow-hidden border-4 border-gray-50 dark:border-gray-800 shadow-md">
+                    <img :src="getPhotoUrl(personaData.CIInfPer)" @error="handleImageError" class="w-full h-full object-cover" alt="Perfil" />
+                </div>
+                <div class="text-center md:text-left">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                        {{ personaData.NombInfPer }} {{ personaData.ApellInfPer }} {{ personaData.ApellMatInfPer }}
+                    </h3>
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        <span class="font-medium font-mono bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md text-gray-700 dark:text-gray-300">
+                            {{ personaData.CIInfPer }}
+                        </span>
+                        <span class="hidden md:inline-block h-4 w-px bg-gray-300 dark:bg-gray-700"></span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                            <span v-if="personaData.TipoInfPer === 'D'">Docente</span>
+                            <span v-else-if="personaData.TipoInfPer === 'A'">Administrativo</span>
+                            <span v-else-if="personaData.TipoInfPer === 'T'">Trabajador</span>
+                            <span v-else-if="personaData.TipoInfPer === 'TDO'">Técnico Docente</span>
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-2">
-                            Información Personal
-                        </h4>
-                        <p class="text-[11px] text-gray-400 italic mb-6">
-                            Nota: Los datos obtenidos aquí son los que el personal tiene registrados en el SIAD.
-                        </p>
-                        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Nombres</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{
-                                    personaData.NombInfPer }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Apellidos</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{
-                                    personaData.ApellInfPer + " " + personaData.ApellMatInfPer }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Correo
-                                    Institucional</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ personaData.mailInst
-                                }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Tipo de personal
-                                </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
-                                    v-if="personaData.TipoInfPer === 'D'">Docente</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
-                                    v-if="personaData.TipoInfPer === 'A'">Administrativo</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
-                                    v-if="personaData.TipoInfPer === 'T'">Trabajador</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90"
-                                    v-if="personaData.TipoInfPer === 'TDO'">Tecnico Docente</p>
-                            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Información Personal SIAD -->
+                <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                    <div class="mb-5">
+                        <h4 class="text-lg font-bold text-gray-900 dark:text-white">Información Personal</h4>
+                        <p class="text-xs text-gray-500 mt-1.5">Datos obtenidos del registro oficial en SIAD.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Nombres</span>
+                            <p class="mt-1 font-medium text-gray-900 dark:text-gray-100">{{ personaData.NombInfPer }}</p>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Apellidos</span>
+                            <p class="mt-1 font-medium text-gray-900 dark:text-gray-100">{{ personaData.ApellInfPer }} {{ personaData.ApellMatInfPer }}</p>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Correo Institucional</span>
+                            <p class="mt-1 font-medium text-gray-900 dark:text-gray-100 break-all">{{ personaData.mailInst }}</p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-2">
-                            Información HikCentral
-                        </h4>
-                        <p class="text-[11px] text-gray-400 italic mb-4">
-                            Nota: Aquí se va a verificar si el personal está registrado en HikCentral.
-                        </p>
-                        <div class="mt-2 flex items-center gap-2">
-                            <span v-if="cargandoStatus" class="flex items-center gap-2 text-xs text-gray-500">
-                                <span
-                                    class="inline-block w-4 h-4 border-2 border-gray-300 border-t-brand-500 rounded-full animate-spin"></span>
-                                Verificando en HikCentral...
+                <!-- Estado HikCentral -->
+                <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-center">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4" :class="cargandoStatus ? 'bg-gray-100 text-gray-500' : (estaRegistrado ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600')">
+                            <svg v-if="cargandoStatus" class="animate-spin h-6 w-6" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            <svg v-else-if="estaRegistrado" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Estado en HikCentral</h4>
+                        
+                        <div v-if="cargandoStatus" class="text-sm text-gray-500 font-medium">Verificando registro biométrico...</div>
+                        <div v-else>
+                            <span :class="estaRegistrado ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400'" 
+                                class="inline-flex px-3 py-1.5 border rounded-lg text-xs font-bold uppercase tracking-wide">
+                                {{ estaRegistrado ? 'Sincronizado y Registrado' : 'No Registrado' }}
                             </span>
-                            <span v-else
-                                :class="estaRegistrado ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'"
-                                class="px-2.5 py-1 border rounded-md text-xs font-bold uppercase tracking-wide">
-                                {{ estaRegistrado ? 'Registrado en HIKCENTRAL' : 'No Registrado en HIKCENTRAL' }}
-                            </span>
+                            <p class="text-xs text-gray-500 mt-3 max-w-xs mx-auto">
+                                {{ estaRegistrado ? 'El personal tiene acceso a las terminales de reconocimiento facial habilitadas.' : 'El personal debe ser sincronizado para obtener acceso a las terminales.' }}
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div v-if="estaRegistrado" class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <h4 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
-                    Reporte de Asistencia HIKCENTRAL
-                </h4>
-
-                <div class="flex flex-col gap-4 mt-4 mb-6 md:flex-row md:items-end">
-                    <div class="flex-1">
-                        <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Rango
-                            Rápido</label>
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+                    <div>
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-white">Reporte de Asistencia</h4>
+                        <p class="text-sm text-gray-500 mt-1">Filtra las marcaciones registradas en HikCentral.</p>
+                    </div>
+                    
+                    <!-- Barra de Filtros Integrada -->
+                    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto bg-gray-50 dark:bg-gray-800/50 p-2 rounded-xl border border-gray-100 dark:border-gray-700">
                         <select v-model="rangoSeleccionado" @change="aplicarRangoFecha" :disabled="cargandoAsistencia"
-                            class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90">
+                            class="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
                             <option value="custom">Personalizado</option>
                             <option value="hoy">Hoy</option>
                             <option value="ayer">Ayer</option>
@@ -148,41 +130,24 @@
                             <option value="mes_actual">Mes actual</option>
                             <option value="mes_anterior">Mes anterior</option>
                         </select>
+                        
+                        <div class="flex items-center gap-2">
+                            <input type="date" v-model="beginTime" @change="rangoSeleccionado = 'custom'" :disabled="cargandoAsistencia"
+                                class="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300" />
+                            <span class="text-gray-400 text-sm">-</span>
+                            <input type="date" v-model="endTime" @change="rangoSeleccionado = 'custom'" :disabled="cargandoAsistencia"
+                                class="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300" />
+                        </div>
+                        
+                        <button @click="buscarAsistencia" :disabled="cargandoAsistencia"
+                            class="h-10 px-4 ml-auto lg:ml-2 rounded-lg flex items-center justify-center gap-2 bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition shadow-sm disabled:opacity-50">
+                            <svg v-if="cargandoAsistencia" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <span class="hidden sm:inline">{{ cargandoAsistencia ? 'Buscando...' : 'Buscar Reporte' }}</span>
+                        </button>
                     </div>
-
-                    <div class="flex-1">
-                        <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de
-                            Inicio</label>
-                        <input type="date" v-model="beginTime" @change="rangoSeleccionado = 'custom'"
-                            :disabled="cargandoAsistencia"
-                            class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90" />
-                    </div>
-
-                    <div class="flex-1">
-                        <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de
-                            Fin</label>
-                        <input type="date" v-model="endTime" @change="rangoSeleccionado = 'custom'"
-                            :disabled="cargandoAsistencia"
-                            class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90" />
-                    </div>
-
-                    <button @click="buscarAsistencia" :disabled="cargandoAsistencia"
-                        class="h-11 px-6 rounded-lg flex items-center justify-center gap-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brand-500 dark:hover:bg-brand-600">
-                        <svg v-if="cargandoAsistencia" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                            </circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
-                        <span>{{ cargandoAsistencia ? 'Buscando...' : 'Buscar Reporte' }}</span>
-                    </button>
                 </div>
-
-
                 <div v-if="attendanceData && attendanceData.length > 0" class="mt-6 overflow-x-auto">
-
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse min-w-[1000px]">
                             <thead>
@@ -334,7 +299,6 @@
                             </div>
                         </div>
                     </transition>
-
                     <button @click="compararYRegistrar" :disabled="sincronizando"
                         class="h-11 px-6 w-full rounded-lg flex items-center justify-center gap-2 bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg v-if="sincronizando" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -447,7 +411,6 @@
                     class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-99999">
                     <div
                         class="relative bg-white dark:bg-gray-900 rounded-xl max-w-4xl w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 max-h-[90vh] flex flex-col">
-
                         <!-- HEADER DEL MODAL -->
                         <div
                             class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4 mb-4">
@@ -607,6 +570,24 @@ export default {
             const charCode = event.charCode ? event.charCode : event.keyCode;
             if (charCode < 48 || charCode > 57) {
                 event.preventDefault();
+            }
+        },
+         onInputValidador(event) {
+            // 1. Elimina cualquier caracter que no sea un número usando una expresión regular
+            let valorLimpio = event.target.value.replace(/\D/g, '');
+            
+            // 2. Asegura que no pase de 10 dígitos (por si el pegado ignora el maxlength de alguna forma)
+            if (valorLimpio.length > 10) {
+                valorLimpio = valorLimpio.substring(0, 10);
+            }
+
+            // 3. Actualiza el valor visual del input y la variable v-model
+            this.searchQuery = valorLimpio;
+            event.target.value = valorLimpio;
+
+            // 4. Llama a tu función original de debounce
+            if (typeof this.debouncedFilter === 'function') {
+                this.debouncedFilter();
             }
         },
         obtenerClasePorEstadoDB(estadoTexto) {

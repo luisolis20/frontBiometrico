@@ -1,381 +1,268 @@
 <template>
     <div>
-        <form class="flex-grow">
-            <div class="relative">
-                <button type="submit" :disabled="cargando"
-                    class="absolute -translate-y-1/2 left-4 top-1/2 transition-opacity disabled:opacity-50">
-                    <svg v-if="cargando" class="animate-spin h-5 w-5 text-brand-500" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
-                    <svg v-else class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20"
-                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z" />
-                    </svg>
-                </button>
-                <input type="text" placeholder="Ingresa la cédula a buscar..." v-model="searchQuery"
-                    :disabled="cargando" @input="debouncedFilter" @keypress="onlyNumbers"
-                    @keyup.enter="buscarEstudiante"
-                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px] disabled:opacity-50 disabled:cursor-not-allowed" />
+        <!-- BARRA DE BÚSQUEDA -->
+        <form class="w-full max-w-2xl relative group">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none transition-colors duration-200"
+                :class="cargando ? 'text-brand-500' : 'text-gray-400 group-focus-within:text-brand-500'">
+                <svg v-if="cargando" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg v-else class="w-5 h-5 fill-current" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z" />
+                </svg>
             </div>
+            <input type="text" placeholder="Ingresa la cédula a buscar..." v-model="searchQuery"
+                :disabled="cargando" @input="onInputValidador" @keypress="onlyNumbers" @keyup.enter="buscarEstudiante" maxlength="10"
+                class="w-full h-12 pl-12 pr-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm text-gray-800 dark:text-white/90 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all disabled:opacity-50 disabled:bg-gray-50 dark:disabled:bg-gray-900/50" />
         </form>
-
         <br>
-        <div class="mt-5 p-4 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-gray-800 rounded-2xl max-w-2xl">
-            <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">
-                Periodo Lectivo de Consulta
-            </span>
+        <!-- SELECTOR DE PERIODO -->
+        <div class="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm max-w-3xl">
+            <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Periodo Lectivo de Consulta</h3>
             <div class="flex flex-wrap gap-3">
                 <label v-for="(periodo, index) in periodosList" :key="periodo.idper"
-                    class="relative flex items-center justify-between gap-4 px-4 py-3 rounded-xl border cursor-pointer select-none transition-all duration-200 min-w-[220px] group"
+                    class="relative flex items-center justify-between gap-3 px-4 py-3 rounded-xl border cursor-pointer select-none transition-all duration-200 group"
                     :class="[
                         periodoSeleccionado === periodo.idper
-                            ? 'border-brand-500 bg-brand-500/[0.04] text-brand-700 dark:text-brand-400 ring-2 ring-brand-500/10'
-                            : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700 text-gray-700 dark:text-gray-300',
-                        cargando ? 'opacity-60 cursor-not-allowed' : ''
+                            ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 ring-1 ring-brand-500/50 shadow-sm'
+                            : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300',
+                        cargando ? 'opacity-50 pointer-events-none' : ''
                     ]">
-                    
                     <div class="flex items-center gap-3">
                         <div class="w-4 h-4 rounded-full border flex items-center justify-center transition-colors"
                             :class="periodoSeleccionado === periodo.idper ? 'border-brand-500' : 'border-gray-300 dark:border-gray-600 group-hover:border-gray-400'">
                             <div v-if="periodoSeleccionado === periodo.idper" class="w-2 h-2 rounded-full bg-brand-500"></div>
                         </div>
-                        
-                        <span class="text-sm font-semibold leading-none">
-                            {{ periodo.DescPerLec }}
-                        </span>
+                        <span class="text-sm font-semibold">{{ periodo.DescPerLec }}</span>
                     </div>
-
-                    <span v-if="index === 0" 
-                        class="text-[10px] font-bold px-2 py-0.5 rounded-md"
-                        :class="periodoSeleccionado === periodo.idper 
-                            ? 'bg-brand-100 text-brand-800 dark:bg-brand-950/40 dark:text-brand-300' 
-                            : 'bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400'">
+                    <span v-if="index === 0" class="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                        :class="periodoSeleccionado === periodo.idper ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'">
                         Vigente
                     </span>
-
-                    <input type="radio" name="periodo-lectivo" :value="periodo.idper" 
-                        v-model="periodoSeleccionado" :disabled="cargando" class="sr-only" />
+                    <input type="radio" name="periodo-lectivo" :value="periodo.idper" v-model="periodoSeleccionado" :disabled="cargando" class="sr-only" />
                 </label>
             </div>
         </div>
-
         <br>
-        <div v-if="estudianteData && estencontrado && !cargando">
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <div class="flex flex-col items-center w-full gap-6 xl:flex-row">
-                        <div class="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800">
-                            <img :src="getPhotoUrl(estudianteData.CIInfPer)" alt="user" />
+        <!-- CONTENIDO DEL ESTUDIANTE -->
+        <div v-if="estudianteData && estencontrado && !cargando" class="space-y-6">
+            
+            <!-- HEADER ESTUDIANTE -->
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+                <div class="w-24 h-24 shrink-0 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-md">
+                    <img :src="getPhotoUrl(estudianteData.CIInfPer)" alt="Foto estudiante" class="w-full h-full object-cover" />
+                </div>
+                <div class="text-center sm:text-left flex-1">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        {{ estudianteData.NombInfPer }} {{ estudianteData.ApellInfPer }} {{ estudianteData.ApellMatInfPer }}
+                    </h2>
+                    <div class="mt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 text-sm text-gray-500 dark:text-gray-400">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+                            {{ estudianteData.CIInfPer }}
+                        </span>
+                        <div class="hidden sm:block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                        <span class="font-medium text-gray-700 dark:text-gray-300">{{ estudianteData.NombCarr }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- INFORMACIÓN PERSONAL -->
+                <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col">
+                    <div class="mb-5">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Información Personal</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Datos registrados en el sistema SIAD.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-6 gap-x-4">
+                        <div>
+                            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nombres</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ estudianteData.NombInfPer }}</p>
                         </div>
-                        <div class="order-3 xl:order-2">
-                            <h4
-                                class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                                {{ estudianteData.NombInfPer + " " + estudianteData.ApellInfPer + " " +
-                                estudianteData.ApellMatInfPer }}
-                            </h4>
-                            <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ estudianteData.CIInfPer }}</p>
-                                <div class="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                                <p class="text-sm text-gray-500 dark:text-gray-400"> {{ estudianteData.NombCarr }}</p>
+                        <div>
+                            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Apellidos</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ estudianteData.ApellInfPer }} {{ estudianteData.ApellMatInfPer }}</p>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Correo Institucional</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-white break-all">{{ estudianteData.mailInst }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Nivel Actual</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-white">Nivel {{ formatNivel(estudianteData.nivel) }}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Facultad</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ estudianteData.siglasFacultad }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HIKCENTRAL & FOTOS -->
+                <div class="bg-white dark:bg-gray-900 flex flex-col rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                    <div class="p-6 flex-1">
+                        <div class="flex justify-between items-start mb-5">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Validación Biométrica</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Comparación facial con HikCentral.</p>
                             </div>
+                            <!-- Status Badge -->
+                            <span v-if="cargandoStatus" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-bold animate-pulse">
+                                <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Verificando...
+                            </span>
+                            <span v-else :class="estaRegistrado ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'" class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide">
+                                {{ estaRegistrado ? 'Registrado' : 'No Registrado' }}
+                            </span>
+                        </div>
+
+                        <!-- Comparativa de Fotos -->
+                        <div class="flex items-center justify-center gap-4 mb-4 bg-gray-50 dark:bg-gray-800/30 p-4 rounded-xl">
+                            <div class="relative group">
+                                <img :src="getPhotoUrl(estudianteData.CIInfPer)" @error="handleImageError" class="h-32 w-28 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm" />
+                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold shadow-md">SIAD</div>
+                            </div>
+                            
+                            <div class="flex flex-col items-center justify-center w-12 shrink-0">
+                                <svg class="w-6 h-6 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            </div>
+
+                            <div class="relative group">
+                                <img :src="getPhotoUrl2(estudianteData.CIInfPer)" @error="handleImageError" class="h-32 w-28 object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm" />
+                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold shadow-md">HIKCENTRAL</div>
+                            </div>
+                        </div>
+
+                        <!-- Resultado Similitud -->
+                        <div class="text-center">
+                            <p v-if="comparando" class="text-sm text-brand-600 dark:text-brand-400 font-medium animate-pulse">Calculando similitud facial...</p>
+                            <div v-else-if="comparacionResultado" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg" :class="comparacionResultado.identicas ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'">
+                                <svg v-if="comparacionResultado.identicas" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                                <svg v-else class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                <span class="text-sm font-bold">Similitud: {{ comparacionResultado.similitud }}% ({{ comparacionResultado.identicas ? 'Coincide' : 'Requiere Actualización' }})</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción HIK -->
+                    <div class="bg-gray-50/80 dark:bg-gray-800/50 p-4 border-t border-gray-100 dark:border-gray-800 rounded-b-2xl">
+                        <button v-if="!estaRegistrado && !cargandoStatus" :disabled="cargando" @click="registrarEnHikCentral(estudianteData.CIInfPer)" class="w-full flex justify-center items-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white hover:bg-brand-700 shadow-sm transition-all disabled:opacity-50">
+                            Enviar Foto a HikCentral
+                        </button>
+                        <button v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas" :disabled="cargando" @click="UpdateEnHikCentral(estudianteData.CIInfPer)" class="w-full flex justify-center items-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-white hover:bg-amber-600 shadow-sm transition-all disabled:opacity-50">
+                            Actualizar Foto en HikCentral
+                        </button>
+                        <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas" class="w-full flex justify-center items-center gap-2 px-4 py-3 text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                            Información Sincronizada
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <!-- GESTIÓN DE ACCESO AL GIMNASIO -->
+            <div v-if="estaRegistrado" class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Gestión de Acceso Especial</h3>
+                <div class="flex flex-col sm:flex-row items-center justify-between p-5 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 gap-4">
+                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                        <div :class="tieneAccesoGym ? 'bg-brand-100 text-brand-600 dark:bg-brand-900/30' : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'" class="p-3.5 rounded-xl shrink-0 transition-colors">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 6v12m14-12v12M8 8v8m8-8v8"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-bold text-gray-900 dark:text-white">Gimnasio Institucional</h4>
+                            <p class="text-sm mt-0.5" :class="tieneAccesoGym ? 'text-brand-600 dark:text-brand-400 font-medium' : 'text-gray-500 dark:text-gray-400'">
+                                {{ tieneAccesoGym ? 'Acceso activo para el periodo actual.' : 'El estudiante no posee acceso habilitado.' }}
+                            </p>
+                        </div>
+                    </div>
+                    <button v-if="!tieneAccesoGym" @click="agregarAccesoGym" :disabled="cargandoAccesoGym" class="w-full sm:w-auto px-6 py-2.5 bg-gray-900 dark:bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-gray-800 dark:hover:bg-brand-500 transition-all shadow-sm disabled:opacity-50">
+                        Habilitar Acceso
+                    </button>
+                    <button v-else @click="quitarAccesoGym" :disabled="cargandoAccesoGym" class="w-full sm:w-auto px-6 py-2.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-sm font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-all disabled:opacity-50">
+                        Revocar Acceso
+                    </button>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE ACCESOS -->
+            <div v-if="estaRegistrado" class="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-5">Historial de Accesos al Gimnasio</h3>
+                
+                <!-- Filtros -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-100 dark:border-gray-800">
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Información Personal
-                        </h4>
-                        <p class="text-[11px] text-gray-400 italic">
-                            Nota: Los datos obtenidos aquí son los que el estudiante tiene registrados en el SIAD. Luego
-                            que verifiques la información debes dar clic en "Sincronizar HK" para que estos datos se
-                            envíen al sistema de reconocimiento facial.
-                        </p>
-                        <br>
-                        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Nombres</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{
-                                    estudianteData.NombInfPer }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Apellidos</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{
-                                    estudianteData.ApellInfPer + " " + estudianteData.ApellMatInfPer }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Correo
-                                    Institucional</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{
-                                    estudianteData.mailInst }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Carrera</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{
-                                    estudianteData.NombCarr }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Nivel del
-                                    periodo actual</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ formatNivel(estudianteData.nivel) }}</p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Facultad</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{
-                                    estudianteData.siglasFacultad }}</p>
-                            </div>
-                        </div>
+                        <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Periodo Rápido</label>
+                        <select v-model="filtroSeleccionado" @change="aplicarFiltroFecha" :disabled="cargandoEventos" class="w-full h-10 px-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 dark:text-white/90">
+                            <option value="custom">Personalizado</option>
+                            <option value="hoy">Hoy</option>
+                            <option value="ayer">Ayer</option>
+                            <option value="esta_semana">Esta semana</option>
+                            <option value="mes_actual">Mes actual</option>
+                            <option value="mes_anterior">Mes anterior</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Inicio</label>
+                        <input type="date" v-model="fechaInicio" @change="filtroSeleccionado = 'custom'" :disabled="cargandoEventos" class="w-full h-10 px-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 dark:text-white/90" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Fin</label>
+                        <input type="date" v-model="fechaFin" @change="filtroSeleccionado = 'custom'" :disabled="cargandoEventos" class="w-full h-10 px-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 dark:text-white/90" />
+                    </div>
+                    <div class="flex items-end">
+                        <button @click="obtenerEventosPuerta" :disabled="cargandoEventos" class="w-full h-10 flex items-center justify-center gap-2 bg-gray-900 dark:bg-brand-600 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition-all disabled:opacity-50">
+                            <svg v-if="cargandoEventos" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>{{ cargandoEventos ? 'Buscando...' : 'Consultar' }}</span>
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                    <div class="w-full">
-                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Información
-                            HikCentral</h4>
-                        <p class="text-[11px] text-gray-400 italic">
-                            Nota: Los datos obtenidos aquí son los datos que el estudiante tiene registrados en
-                            HikCentral. Luego que verifiques la información debes dar clic en "Sincronizar HK"
-                        </p>
-                        <br>
-                        <div class="file-uploader mt-5 pb-6">
-                            <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">Foto</label>
-                            <div class="mb-4 flex justify-center">
-                                <div class="relative">
-                                    <img :src="getPhotoUrl(estudianteData.CIInfPer)"
-                                        class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
-                                        @error="handleImageError" />
-                                    <span
-                                        class="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">SIAD</span>
-                                </div>
-                                &nbsp;&nbsp;&nbsp;
-                                <div class="relative">
-                                    <img :src="getPhotoUrl2(estudianteData.CIInfPer)"
-                                        class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
-                                        @error="handleImageError" />
-                                    <span
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">HIKCENTRAL</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-2 flex flex-wrap items-center gap-2">
-                            <!-- Badge Status Registro HikCentral -->
-                            <span v-if="cargandoStatus" class="text-xs text-gray-400">
-                                Verificando en HikCentral...
+                <!-- Lista de Registros -->
+                <div v-if="cargandoEventos" class="py-12 flex flex-col items-center justify-center text-gray-400">
+                    <svg class="animate-spin h-8 w-8 text-brand-500 mb-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span class="text-sm font-medium">Recuperando marcaciones...</span>
+                </div>
+                <div v-else-if="!visitasProcesadas.length" class="py-10 text-center bg-gray-50 dark:bg-gray-800/20 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">No se encontraron accesos en las fechas seleccionadas.</p>
+                </div>
+                <div v-else class="space-y-3">
+                    <div v-for="(visita, index) in visitasProcesadas" :key="index" class="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm flex flex-col md:flex-row items-center gap-6">
+                        
+                        <!-- Fecha y Estado -->
+                        <div class="w-full md:w-1/4 shrink-0 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-700 pb-3 md:pb-0 md:pr-4">
+                            <span :class="{
+                                'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400': visita.estado === 'Completado' || visita.estado === 'En gimnasio',
+                                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': visita.estado === 'Bloqueado (Anti-passback)',
+                                'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': visita.estado === 'Alerta: Doble Entrada'
+                            }" class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">
+                                {{ visita.estado }}
                             </span>
-                            <span v-else
-                                :class="estaRegistrado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                                class="px-2 py-1 rounded-md text-xs font-bold uppercase">
-                                {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
-                            </span>
+                            <p class="text-sm font-bold text-gray-800 dark:text-white">{{ visita.fecha }}</p>
+                        </div>
 
-                            
-                        </div>
-                        <div v-if="comparando" class="text-xs text-green-500 animate-pulse mt-2">
-                            Calculando similitud facial...
-                        </div>
-                        <div v-if="comparacionResultado && !comparando" class="mt-2">
-                            <span :class="comparacionResultado.identicas ? 'text-green-600' : 'text-red-600'"
-                                class="text-sm font-bold">
-                                Similitud: {{ comparacionResultado.similitud }}% ({{ comparacionResultado.identicas ?
-                                'Coincide' : 'No coincide' }})
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11 mt-4">
-                    <button v-if="!estaRegistrado && !cargandoStatus" type="button" :disabled="cargando"
-                        @click="registrarEnHikCentral(estudianteData.CIInfPer)"
-                        class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50">
-                        Enviar Foto a HIK
-                    </button>
-                    <button v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas"
-                        type="button" :disabled="cargando" @click="UpdateEnHikCentral(estudianteData.CIInfPer)"
-                        class="flex w-full justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 sm:w-auto shadow-lg transition-all disabled:opacity-50">
-                        Actualizar Foto en HIK (Baja Similitud)
-                    </button>
-                    <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas"
-                        class="flex items-center gap-2 text-green-600 font-medium text-sm">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Información Sincronizada y Validada
-                    </div>
-                </div>
-                <!-- NUEVA SECCIÓN: Gestión de Acceso al Gimnasio -->
-                <div v-if="estaRegistrado" class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
-                    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                        <div class="w-full">
-                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-4">
-                                Gestión de Acceso Especiales
-                            </h4>
-                            
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 dark:bg-gray-800/50 dark:border-gray-700 gap-4">
-                                <div class="flex items-center gap-4">
-                                    <div :class="tieneAccesoGym ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30'" class="p-3 rounded-lg">
-                                        <!-- Ícono de Pesa/Gimnasio -->
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 6v12m14-12v12M8 8v8m8-8v8"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-bold text-gray-800 dark:text-white/90">Gimnasio</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ tieneAccesoGym ? 'El estudiante tiene acceso activo al gimnasio.' : 'El estudiante no tiene acceso al gimnasio.' }}
-                                        </p>
-                                    </div>
+                        <!-- Grid Entrada/Salida -->
+                        <div class="flex-1 w-full grid grid-cols-2 gap-4">
+                            <!-- Entrada -->
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                    <img v-if="visita.entrada?.foto" :src="getPhotoUrl23(visita.entrada.foto)" @error="$event.target.style.display='none'" class="w-full h-full object-cover" />
+                                    <svg v-else class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                                 </div>
-                                
-                                <!-- Botones dinámicos basados en tieneAccesoGym -->
-                                <div class="w-full sm:w-auto">
-                                    <button v-if="!tieneAccesoGym" 
-                                        @click="agregarAccesoGym" 
-                                        :disabled="cargandoAccesoGym"
-                                        class="flex w-full sm:w-auto justify-center items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 shadow-sm transition-all disabled:opacity-50">
-                                        Agregar Nivel de Acceso
-                                    </button>
-
-                                    <button v-else 
-                                        @click="quitarAccesoGym" 
-                                        :disabled="cargandoAccesoGym"
-                                        class="flex w-full sm:w-auto justify-center items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 shadow-sm transition-all disabled:opacity-50">
-                                        Quitar Nivel de Acceso
-                                    </button>
+                                <div>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Entrada</p>
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white">{{ visita.entrada ? visita.entrada.hora : '--:--' }}</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- NUEVA SECCIÓN: Historial de Accesos del Día -->
-                <div v-if="estaRegistrado"
-                    class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
-                    <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                        <div class="w-full">
-                            <!-- Filtros de Fecha -->
-                           <div
-                                class="flex flex-col md:flex-row items-end gap-4 mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl">
-                                <div class="flex-1 w-full">
-                                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Rango
-                                        Rápido</label>
-                                    <select v-model="filtroSeleccionado" @change="aplicarFiltroFecha"
-                                        :disabled="cargandoEventos"
-                                        class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90">
-                                        <option value="custom">Personalizado</option>
-                                        <option value="hoy">Hoy</option>
-                                        <option value="ayer">Ayer</option>
-                                        <option value="esta_semana">Esta semana (Lun - Vie)</option>
-                                        <option value="mes_actual">Mes actual</option>
-                                        <option value="mes_anterior">Mes anterior</option>
-                                    </select>
+                            <!-- Salida -->
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 overflow-hidden shrink-0 flex items-center justify-center border border-gray-200 dark:border-gray-600">
+                                    <img v-if="visita.salida?.foto" :src="getPhotoUrl23(visita.salida.foto)" @error="$event.target.style.display='none'" class="w-full h-full object-cover" />
+                                    <svg v-else class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                 </div>
-
-                                <div class="flex-1 w-full">
-                                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Fecha
-                                        de Inicio</label>
-                                    <input type="date" v-model="fechaInicio" @change="filtroSeleccionado = 'custom'"
-                                        :disabled="cargandoEventos"
-                                        class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90" />
-                                </div>
-
-                                <div class="flex-1 w-full">
-                                    <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Fecha
-                                        de Fin</label>
-                                    <input type="date" v-model="fechaFin" @change="filtroSeleccionado = 'custom'"
-                                        :disabled="cargandoEventos"
-                                        class="w-full h-11 rounded-lg border border-gray-200 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:text-white/90" />
-                                </div>
-
-                                <button @click="obtenerEventosPuerta" :disabled="cargandoEventos"
-                                    class="h-11 px-6 rounded-lg flex items-center justify-center gap-2 bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brand-500 dark:hover:bg-brand-600 w-full md:w-auto">
-                                    <svg v-if="cargandoEventos" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                            stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                        </path>
-                                    </svg>
-                                    <span>{{ cargandoEventos ? 'Consultando...' : 'Consultar' }}</span>
-                                </button>
-                            </div>
-
-                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Registro de Accesos GYM
-                            </h4>
-
-                            <div v-if="cargandoEventos" class="text-sm text-gray-500 py-4 text-center">Consultando
-                                marcaciones...</div>
-                            <div v-else-if="!visitasProcesadas.length"
-                                class="text-sm text-gray-500 py-4 text-center bg-gray-50 rounded-lg">No se registran
-                                accesos en este periodo.</div>
-
-                            <!-- Visitas Agrupadas -->
-                            <div v-else class="grid grid-cols-1 gap-4">
-                                <div v-for="(visita, index) in visitasProcesadas" :key="index"
-                                    class="flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm gap-4">
-
-                                    <!-- Estado / Alertas -->
-                                    <div class="w-full sm:w-1/4">
-                                        <span :class="{
-                                            'bg-green-100 text-green-700': visita.estado === 'Completado' || visita.estado === 'En gimnasio',
-                                            'bg-red-100 text-red-700': visita.estado === 'Bloqueado (Anti-passback)',
-                                            'bg-yellow-100 text-yellow-700': visita.estado === 'Alerta: Doble Entrada'
-                                        }" class="px-3 py-1 rounded-full text-xs font-bold inline-block mb-2">
-                                            {{ visita.estado }}
-                                        </span>
-                                        <p class="text-xs text-gray-500">{{ visita.fecha }}</p>
-                                    </div>
-
-                                    <!-- Datos de Entrada -->
-                                    <div
-                                        class="w-full sm:w-1/3 flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
-                                        <div class="flex-shrink-0">
-                                            <img v-if="visita.entrada?.foto" 
-                                                :src="getPhotoUrl23(visita.entrada.foto)"
-                                                @error="$event.target.style.display='none'"
-                                                class="w-12 h-12 rounded-lg object-cover border" 
-                                                title="Foto Entrada" />
-                                            <div v-else
-                                                class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">
-                                                N/A</div>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-semibold text-gray-500 uppercase">Entrada</p>
-                                            <p class="text-sm font-bold text-gray-800 dark:text-white">{{ visita.entrada
-                                                ? visita.entrada.hora : '--:--' }}</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Datos de Salida -->
-                                    <div
-                                        class="w-full sm:w-1/3 flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
-                                        <div class="flex-shrink-0">
-                                            <img v-if="visita.salida?.foto" 
-                                                :src="getPhotoUrl23(visita.salida.foto)"
-                                                @error="$event.target.style.display='none'"
-                                                class="w-12 h-12 rounded-lg object-cover border" 
-                                                title="Foto Salida" />
-                                            <div v-else
-                                                class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">
-                                                N/A</div>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-semibold text-gray-500 uppercase">Salida</p>
-                                            <p class="text-sm font-bold text-gray-800 dark:text-white">{{ visita.salida
-                                                ? visita.salida.hora : '--:--' }}</p>
-                                        </div>
-                                    </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Salida</p>
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white">{{ visita.salida ? visita.salida.hora : '--:--' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -384,50 +271,38 @@
             </div>
         </div>
 
-        <div v-if="!estudianteData" class="mt-4">
-            <div v-if="cargando"
-                class="flex flex-col items-center justify-center p-12 border border-dashed border-gray-200 rounded-2xl dark:border-gray-800 bg-gray-50/30 dark:bg-white/[0.01]">
-                <svg class="animate-spin h-9 w-9 text-brand-500 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                    </path>
-                </svg>
-                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Consultando expediente en el SIAD...</p>
-                <p class="text-xs text-gray-400 mt-1">Por favor espere un momento.</p>
+        <div v-if="!estudianteData" class="mt-6">
+            <div v-if="cargando" class="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+                <div class="p-4 bg-brand-50 dark:bg-brand-900/20 rounded-full mb-4">
+                    <svg class="animate-spin h-8 w-8 text-brand-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white">Consultando expediente</h4>
+                <p class="text-sm text-gray-500 mt-1">Conectando con el sistema SIAD...</p>
             </div>
 
-            <div v-else-if="errorValidacion"
-                class="p-4 rounded-xl bg-red-50 border border-red-200 dark:bg-red-950/20 dark:border-red-900/50 text-red-800 dark:text-red-400">
-                <div class="flex gap-3 items-start">
-                    <span class="text-lg">🛑</span>
-                    <div>
-                        <h5 class="text-sm font-bold">Formato de Identificación Inválido</h5>
-                        <p class="text-xs mt-1 leading-relaxed opacity-90">{{ errorValidacionTexto }}</p>
-                    </div>
+            <div v-else-if="errorValidacion" class="p-5 rounded-2xl bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-900/50 flex gap-4 items-start shadow-sm">
+                <div class="p-2 bg-red-100 dark:bg-red-900/50 rounded-lg text-red-600 shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <div>
+                    <h5 class="text-sm font-bold text-red-800 dark:text-red-400">Formato Inválido</h5>
+                    <p class="text-sm text-red-700 dark:text-red-300 mt-1 opacity-90">{{ errorValidacionTexto }}</p>
                 </div>
             </div>
 
-            <div v-else-if="!estencontrado"
-                class="p-4 rounded-xl bg-amber-50 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50 text-amber-800 dark:text-amber-400">
-                <div class="flex gap-3 items-start">
-                    <span class="text-lg">⚠️</span>
-                    <div>
-                        <h5 class="text-sm font-bold">Estudiante no localizado u omitido</h5>
-                        <p class="text-xs mt-1 leading-relaxed opacity-90">
-                            No se ha encontrado ningún registro que coincida exactamente con los parámetros ingresados.
-                            Por favor, realice las siguientes verificaciones:
-                        </p>
-                        <ul class="list-disc list-inside text-xs mt-2 space-y-1 opacity-95 pl-1">
-                            <li>Confirme que el número de cédula esté digitado correctamente.</li>
-                            <li>Asegúrese de que el estudiante se encuentre <strong>matriculado legalmente</strong> en
-                                el periodo seleccionado.</li>
-                            <li>Verifique si el alumno dispone de una <strong>fotografía activa</strong> cargada en el
-                                SIAD.</li>
-                            <li>El estudiante no haya graduado hace más de 1 año</li>
-                        </ul>
-                    </div>
+            <div v-else-if="!estencontrado && searchQuery !== ''" class="p-5 rounded-2xl bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-900/50 flex gap-4 items-start shadow-sm">
+                <div class="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <h5 class="text-sm font-bold text-amber-800 dark:text-amber-400">Estudiante no localizado</h5>
+                    <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 mb-2 opacity-90">No se encontraron registros coincidentes. Verifica lo siguiente:</p>
+                    <ul class="list-disc list-inside text-sm text-amber-700 dark:text-amber-300 space-y-1 opacity-80 pl-1">
+                        <li>Cédula digitada correctamente.</li>
+                        <li>Matrícula legal vigente en el periodo seleccionado.</li>
+                        <li>Fotografía activa registrada en el SIAD.</li>
+                        <li>Tiempo de graduación (no mayor a 1 año).</li>
+                    </ul>
                 </div>
             </div>
 
@@ -512,7 +387,7 @@ export default {
     },
     mounted() {
         this.cargarPeriodos();
-        this.obtenerNivelesdeAcceso();
+        //this.obtenerNivelesdeAcceso();
     },
     methods: {
         async verificarAccesoGym() {
@@ -580,6 +455,24 @@ export default {
             const charCode = event.charCode ? event.charCode : event.keyCode;
             if (charCode < 48 || charCode > 57) {
                 event.preventDefault();
+            }
+        },
+        onInputValidador(event) {
+            // 1. Elimina cualquier caracter que no sea un número usando una expresión regular
+            let valorLimpio = event.target.value.replace(/\D/g, '');
+            
+            // 2. Asegura que no pase de 10 dígitos (por si el pegado ignora el maxlength de alguna forma)
+            if (valorLimpio.length > 10) {
+                valorLimpio = valorLimpio.substring(0, 10);
+            }
+
+            // 3. Actualiza el valor visual del input y la variable v-model
+            this.searchQuery = valorLimpio;
+            event.target.value = valorLimpio;
+
+            // 4. Llama a tu función original de debounce
+            if (typeof this.debouncedFilter === 'function') {
+                this.debouncedFilter();
             }
         },
         // 🆕 Genera la URL para cargar la foto directamente como imagen binaria
@@ -728,7 +621,7 @@ export default {
                     endTime: this.fechaFin
                 };
                 const response = await API.post(`${this.baseUrl}/eventos-puerta-asistencia`, payload);
-                console.log("✅ Eventos obtenidos:", response);
+                //console.log("✅ Eventos obtenidos:", response);
                 if (response.data?.data?.list) {
                     // En vez de mostrar la lista cruda, la procesamos
                     this.procesarMarcacionesAgrupadas(response.data.data.list);
@@ -756,16 +649,16 @@ export default {
                 console.error("Error al cargar periodos:", error);
             }
         },
-        async obtenerNivelesdeAcceso() {
+        /*async obtenerNivelesdeAcceso() {
             try {
                 const response = await API.get(`${this.baseUrl}/get-access-levels`);
                 const response2 = await API.get(`${this.baseUrl}/get-access-person`);
-                console.log("✅ Niveles de acceso obtenidos:", response);
-                console.log("✅ Personas con acceso obtenidas:", response2);
+                //console.log("✅ Niveles de acceso obtenidos:", response);
+                //console.log("✅ Personas con acceso obtenidas:", response2);
             } catch (error) {
                 console.error("❌ Error al obtener niveles de acceso:", error);
             }
-        },
+        },*/
         async buscarEstudiante() {
             //if (this.searchQuery.length < 10) return;
             this.errorValidacion = false;

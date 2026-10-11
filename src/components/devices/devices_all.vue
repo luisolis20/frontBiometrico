@@ -41,7 +41,20 @@
           <option :value="20">20 por pág.</option>
           <option :value="50">50 por pág.</option>
         </select>
-
+        <!-- Botón PDF -->
+        <button 
+          @click="abrirModalPDF" 
+          :disabled="cargando || totalItems === 0 || generandoPDF"
+          class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:outline-none disabled:opacity-50"
+          title="Exportar a PDF"
+        >
+          <svg v-if="!generandoPDF" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <svg v-else class="w-4 h-4 animate-spin text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
         <!-- Botón Actualizar -->
         <button 
           @click="getDevices(currentPage)" 
@@ -158,12 +171,39 @@
       </div>
 
     </div>
-
+    <!-- Modal para seleccionar tipo de PDF -->
+    <div v-if="mostrarModalPDF" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 transform transition-all">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Generar Reporte PDF</h3>
+        </div>
+        
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+          Existen actualmente <span class="font-bold">{{ lastPage }}</span> páginas de resultados de dispositivos. ¿Desea descargar solo los registros de la página actual o todos los dispositivos registrados?
+        </p>
+        
+        <div class="flex flex-col sm:flex-row justify-end gap-3">
+          <button @click="mostrarModalPDF = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+            Cancelar
+          </button>
+          <button @click="ejecutarDescargaPDF('actual')" class="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-lg transition-colors">
+            Página actual
+          </button>
+          <button @click="ejecutarDescargaPDF('todos')" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm">
+            Todos los resultados
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import API from "@/assets/js/services/axios";
+import { jsPDF } from "jspdf";
 
 export default {
   name: "TablaAcsDevicesHikcentral",
@@ -177,6 +217,8 @@ export default {
       pageSize: 10,
       totalItems: 0,
       searchQuery: "",
+      mostrarModalPDF: false,
+      generandoPDF: false,
     };
   },
   computed: {
@@ -252,6 +294,183 @@ export default {
     onPageSizeChange() {
       this.currentPage = 1;
       this.getDevices(1);
+    },
+    abrirModalPDF() {
+      this.mostrarModalPDF = true;
+    },
+
+    async ejecutarDescargaPDF(opcion) {
+      this.mostrarModalPDF = false;
+      this.generandoPDF = true;
+      let datosParaPDF = [];
+
+      try {
+        if (opcion === 'actual') {
+          // Si elige actual, respeta el filtro local si el usuario escribió algo
+          datosParaPDF = this.dispositivosFiltrados; 
+        } else if (opcion === 'todos') {
+          // Pedir todos los registros (usamos totalItems como pageSize)
+          const maxRegistros = this.totalItems > 0 ? this.totalItems : 1000;
+          const response = await API.get(`${this.baseUrl}/devices`, {
+            params: { pageNo: 1, pageSize: maxRegistros }
+          });
+          
+          if (response.data && response.data.success) {
+            datosParaPDF = response.data.data || [];
+          } else if (response.data && response.data.code === "0") {
+            datosParaPDF = response.data.data.list || [];
+          }
+        }
+
+        if (datosParaPDF.length > 0) {
+          await this.generarPDF(datosParaPDF);
+        } else {
+          console.warn("No hay datos para generar el PDF");
+        }
+      } catch (error) {
+        console.error("Error al preparar los datos del PDF:", error);
+      } finally {
+        this.generandoPDF = false;
+      }
+    },
+
+    async generarPDF(datos) {
+      try {
+        const cargarImagen = (src) => {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = src;
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+          });
+        };
+
+        const fondoImgUrl = '/fondo.png'; // Reemplazar por tu ruta real en public
+        const imgFondo = await cargarImagen(fondoImgUrl);
+
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        const aplicarFondo = () => {
+          if (imgFondo) {
+            doc.addImage(imgFondo, 'PNG', 0, 0, 210, 297);
+          }
+        };
+
+        aplicarFondo();
+
+        // TÍTULO DEL REPORTE
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(30, 41, 59);
+        doc.text("REPORTE DE DISPOSITIVOS DE CONTROL DE ACCESO", 105, 35, { align: "center" });
+
+        // SECCIÓN TABLA
+        let y = 50;
+        const cabeceras = ['Nombre del dispositivo', 'Dirección IP', 'Estado'];
+        // Distribución optimizada (Sumatoria = 186mm)
+        const anchosCol = [90, 56, 40];
+        const xInicial = 12;
+
+        const dibujarCabeceras = (yPos) => {
+          doc.setFillColor(30, 41, 59); // Pizarra oscuro
+          doc.rect(xInicial, yPos, 186, 9, 'F');
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(255, 255, 255);
+
+          let xActual = xInicial;
+          cabeceras.forEach((cabecera, i) => {
+            const align = (i === 2) ? 'center' : 'left'; // Centrar solo el Estado
+            const xTexto = align === 'center' ? xActual + (anchosCol[i] / 2) : xActual + 3;
+            doc.text(cabecera, xTexto, yPos + 6, { align: align });
+            xActual += anchosCol[i];
+          });
+        };
+
+        dibujarCabeceras(y);
+        y += 9;
+
+        // Iterar Dispositivos
+        datos.forEach((record, index) => {
+          const celdaNombre = record.acsDevName || 'Dispositivo Sin Nombre';
+          const celdaIp = record.acsDevIp || 'N/A';
+          const celdaEstado = record.status === 1 ? 'Online' : 'Offline';
+
+          const arrayFila = [celdaNombre, celdaIp, celdaEstado];
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8.5);
+
+          const lineasFila = arrayFila.map((texto, i) => {
+            return doc.splitTextToSize(String(texto || ''), anchosCol[i] - 4);
+          });
+
+          const maxLineas = Math.max(...lineasFila.map(l => l.length));
+          const altoFila = Math.max(8, maxLineas * 4.5);
+
+          // Salto de página si excede el límite
+          if (y + altoFila > 275) {
+            doc.addPage();
+            aplicarFondo();
+            y = 30;
+            dibujarCabeceras(y);
+            y += 9;
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8.5);
+          }
+
+          // Zebra striping
+          if (index % 2 === 0) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(xInicial, y, 186, altoFila, 'F');
+          }
+
+          // Línea separadora
+          doc.setDrawColor(226, 232, 240);
+          doc.setLineWidth(0.2);
+          doc.line(xInicial, y + altoFila, xInicial + 186, y + altoFila);
+
+          // Escribir contenido
+          let xFila = xInicial;
+          lineasFila.forEach((lineas, i) => {
+            // Dar color rojo o verde al estado si es la columna 2
+            if (i === 2) {
+              if (celdaEstado === 'Online') doc.setTextColor(5, 150, 105); // Verde
+              else doc.setTextColor(225, 29, 72); // Rojo
+              doc.setFont("helvetica", "bold");
+            } else {
+              doc.setTextColor(51, 65, 85);
+              doc.setFont("helvetica", "normal");
+            }
+
+            const align = (i === 2) ? 'center' : 'left';
+            const xTexto = align === 'center' ? xFila + (anchosCol[i] / 2) : xFila + 3;
+            const altoTexto = lineas.length * 3.5;
+            const yTexto = y + 4.5 + ((altoFila - 4.5 - altoTexto) / 2);
+
+            doc.text(lineas, xTexto, yTexto, { align: align });
+            xFila += anchosCol[i];
+          });
+
+          y += altoFila;
+        });
+
+        // Total al final del reporte
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        if (y + 10 > 275) {
+            doc.addPage();
+            aplicarFondo();
+            y = 20;
+        }
+        doc.text(`Total de dispositivos listados: ${datos.length}`, xInicial, y + 6);
+
+        doc.save(`Reporte_Dispositivos_Hikcentral.pdf`);
+      } catch (error) {
+        console.error("Error generando PDF:", error);
+      }
     }
   }
 };

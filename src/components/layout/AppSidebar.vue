@@ -162,6 +162,10 @@ import {
   TableIcon,
   ListIcon,
   PlugInIcon,
+  Photos,
+  Attendance,
+  Devices,
+  Register,
 } from "../../icons";
 import SidebarWidget from "./SidebarWidget.vue";
 import BoxCubeIcon from "@/icons/BoxCubeIcon.vue";
@@ -183,20 +187,20 @@ const menuData = [
         path: "/home",
       },
       {
-        icon: UserCircleIcon,
+        icon: Photos,
         name: "Fotos",
         subItems: [
-          { name: "Estudiantes", path: "/estudiantes_pictures", pro: false },
-          { name: "Personal UTLVTE", path: "/docentes_pictures", pro: false },
+          { name: "Estudiantes", path: "/estudiantes_pictures", pro: true },
+          { name: "Personal UTLVTE", path: "/docentes_pictures", pro: true },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_pictures", pro: false },
         ],
       },
       {
-        icon: UserCircleIcon,
+        icon: Register,
         name: "Registro Individual",
         subItems: [
-          { name: "Estudiantes", path: "/estudiantes_registro", pro: false },
-          { name: "Personal UTLVTE", path: "/docentes_registro", pro: false },
+          { name: "Estudiantes", path: "/estudiantes_registro", pro: true },
+          { name: "Personal UTLVTE", path: "/docentes_registro", pro: true },
           { name: "Invitados", path: "/invitados", pro: false, new: true },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
         ],
@@ -209,7 +213,7 @@ const menuData = [
     items: [
       
       {
-        icon: UserCircleIcon,
+        icon: Attendance,
         name: "Reporte de Asistencia",
         subItems: [
           //{ name: "Individual", path: "/asistencia", pro: false, new: true },
@@ -226,10 +230,10 @@ const menuData = [
     items: [
       
       {
-        icon: UserCircleIcon,
+        icon: Devices,
         name: "Devices",
         subItems: [
-          { name: "D-AC", path: "/devices", pro: false },
+          { name: "D-AC", path: "/devices", pro: true },
           { name: "Cámaras", path: "/camaras", pro: false, new: true },
           //{ name: "Estudiantes Pre", path: "/estudiantes_pre_registro", pro: false },
         ],

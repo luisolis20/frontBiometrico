@@ -45,6 +45,10 @@ import LayoutDashboardIcon from "./LayoutDashboardIcon.vue";
 import UserGroupIcon from "./UserGroupIcon.vue";
 import BellIcon from "./BellIcon.vue";
 import BarChartIcon from "./BarChartIcon.vue";
+import Photos from "./Photos.vue";
+import Attendance from "./Attendance.vue";
+import Devices from "./Devices.vue";
+import Register from "./Register.vue";
 
 export {
   BellIcon,
@@ -94,4 +98,8 @@ export {
   MailBox,
   SendIcon,
   DraftIcon,
+  Photos,
+  Attendance,
+  Devices,
+  Register,
 };

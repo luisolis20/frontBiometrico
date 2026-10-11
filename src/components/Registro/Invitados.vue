@@ -1,216 +1,231 @@
 <template>
     <div>
-        <form class="flex-grow">
-            <div class="relative">
-                <div class="absolute -translate-y-1/2 left-4 top-1/2 flex items-center justify-center">
-                    <svg v-if="!cargando" class="fill-gray-500 dark:fill-gray-400" width="20" height="20"
-                        viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                            fill="" />
+        <form class="w-full relative z-10" @submit.prevent>
+            <div class="relative group max-w-2xl mx-auto">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg v-if="!cargando" class="w-5 h-5 text-gray-400 group-focus-within:text-brand-500 transition-colors" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z" fill="currentColor" />
                     </svg>
-                    <span v-else
-                        class="inline-block w-5 h-5 border-2 border-gray-300 border-t-brand-500 rounded-full animate-spin"></span>
+                    <span v-else class="w-5 h-5 border-2 border-gray-200 border-t-brand-500 rounded-full animate-spin"></span>
                 </div>
-
-                <input type="text" placeholder="Ingresa la cédula a buscar..." v-model="searchQuery"
-                    @input="debouncedFilter" @keypress="onlyNumbers" @keyup.enter="buscarInvitado" :disabled="cargando"
-                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]" />
-            </div>
-            <p v-if="errorValidacion" class="text-red-500 text-xs mt-1">{{ errorValidacionTexto }}</p>
-        </form>
-        <br>
-        <!-- RESULTADOS DE BÚSQUEDA (CUANDO YA EXISTE EN BD) -->
-        <div v-if="estencontrado && personaData && !mostrarWizard" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
                 
-                <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <div class="flex flex-col items-center w-full gap-6 xl:flex-row">
-                        <div class="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800">
-                            <img :src="getPhotoUrlInvitado(personaData.cedula, personaData.foto)" @error="handleImageError" alt="user" />
-                        </div>
-                        <div class="order-3 xl:order-2">
-                            <h4
-                                class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                                {{ personaData.nombres + " " + personaData.apellidos }}
-                            </h4>
-                            <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ personaData.cedula }}</p>
-                                <div class="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                               <button v-if="personaData.estado==1" @click="abrirWizardEdicion(personaData)" class="px-3 py-1.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                    Editar Invitado
-                                </button>
-                                <!-- Botón Inhabilitar (Visible solo si estado es 1) -->
-                                <button v-if="personaData.estado == 1" @click="inhabilitarPerson(personaData)" class="px-3 py-1.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                                    Inhabilitar
-                                </button>
-
-                                <!-- Botón Habilitar (Visible solo si estado es 0) -->
-                                <button v-if="personaData.estado == 0" @click="habilitarPerson(personaData)" class="px-3 py-1.5 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Habilitar
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
+                <input 
+                    type="text" 
+                    placeholder="Ingresa la cédula a buscar..." 
+                    v-model="searchQuery"
+                    @input="onInputValidador" 
+                    @keypress="onlyNumbers" 
+                    @keyup.enter="buscarInvitado" 
+                    :disabled="cargando"
+                    maxlength="10"
+                    class="w-full h-14 pl-12 pr-4 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm placeholder:text-gray-400 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+                />
+                
+                <p v-if="errorValidacion" class="absolute -bottom-6 left-2 text-red-500 text-xs font-medium animate-pulse">
+                    {{ errorValidacionTexto }}
+                </p>
             </div>
-            <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        </form>
+
+        <!-- Tarjeta Principal del Invitado -->
+        <div v-if="estencontrado && personaData && !mostrarWizard" class="bg-white dark:bg-gray-900 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-300">
+            
+            <!-- Encabezado de Perfil -->
+            <div class="relative bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-850 border-b border-gray-100 dark:border-gray-800 p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6">
+                <!-- Avatar -->
+                <div class="relative shrink-0">
+                    <div class="w-24 h-24 md:w-28 md:h-28 rounded-full p-1 bg-white dark:bg-gray-700 shadow-md border border-gray-200 dark:border-gray-600">
+                        <img 
+                            :src="getPhotoUrlInvitado(personaData.cedula, personaData.foto)" 
+                            @error="handleImageError" 
+                            alt="Foto de perfil" 
+                            class="w-full h-full rounded-full object-cover"
+                        />
+                    </div>
+                    <!-- Indicador de Estado -->
+                    <span 
+                        :class="personaData.estado == 1 ? 'bg-green-500 border-green-100' : 'bg-red-500 border-red-100'"
+                        class="absolute bottom-1 right-1 w-5 h-5 rounded-full border-4 shadow-sm"
+                        :title="personaData.estado == 1 ? 'Activo' : 'Inactivo'"
+                    ></span>
+                </div>
+
+                <!-- Info Básica & Botones -->
+                <div class="flex-1 text-center md:text-left w-full flex flex-col md:flex-row justify-between items-center md:items-start gap-4">
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-                            Información Personal
-                        </h4>
-                        <p class="text-[11px] text-gray-400 italic">
-                            Nota: Los datos obtenidos aquí son los que el invitado tiene registrados en el SIAD. Luego
-                            que
-                            verifiques la información debes dar clic en "Sincronizar HK"
-                            para que estos datos se envíen al sistema de reconocimiento facial.
-                        </p>
-                        <br>
-                        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Nombres</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                    {{ personaData.nombres }}</p>
-                            </div>
-
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Apellidos</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                    {{ personaData.apellidos }}</p>
-                            </div>
-
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                                    Correo
-                                </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                    {{ personaData.correo }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Sexo</p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                    {{ formatSexo(personaData.genero) }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                                    Departamento asignado en Hikcentral
-                                </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                    <span v-if="cargandoDepartamento" class="text-xs text-gray-400 animate-pulse">Obteniendo departamento...</span>
-                                    <span v-else>{{ nombreDepartamento || personaData.codigo_departamento || 'Sin asignar' }}</span>
-                                </p>
-                            </div>
-                            <div>
-                                <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                                    Vigencia en el acceso facial
-                                </p>
-                                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                                    Desde: {{ personaData.begin_time }} hasta: {{ personaData.end_time }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-            <div v-if="personaData.evidencia || personaData.documento || personaData.archivo" 
-                class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">
-                    Documento de Respaldo / Evidencia (PDF)
-                </h4>
-                <div class="w-full h-[550px] border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-gray-50 dark:bg-gray-900">
-                    <iframe 
-                        :src="getPdfUrlInvitado(personaData.cedula, personaData.evidencia)" 
-                        class="w-full h-full border-0"
-                        type="application/pdf">
-                    </iframe>
-                </div>
-            </div>
-             <div class="p-5 mb-6 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                    <div class="w-full">
-                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">Información
-                            HikCentral</h4>
-                        <p class="text-[11px] text-gray-400 italic">
-                            Nota: Los datos obtenidos aquí son los datos que el estudiante tiene registrados en
-                            HikCentral. Luego que verifiques la información debes dar clic en "Sincronizar HK"
-                        </p>
-                        <br>
-                        <div class="file-uploader mt-5 pb-6">
-                            <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">Foto</label>
-                            <div class="mb-4 flex justify-center">
-                                <div class="relative">
-                                    <img :src="getPhotoUrlInvitado(personaData.cedula, personaData.foto)" @error="handleImageError"
-                                        class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
-                                        />
-                                    <span
-                                        class="absolute -top-2 -right-2 bg-brand-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">SIAD</span>
-                                </div>
-                                &nbsp;&nbsp;&nbsp;
-                                <div class="relative">
-                                    <img :src="getPhotoUrHIk(personaData.cedula)"
-                                        class="h-32 w-48 rounded-xl object-cover border-2 border-gray-100 dark:border-gray-700 shadow-md"
-                                        @error="handleImageError" />
-                                    <span
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">HIKCENTRAL</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-2">
-                            <span v-if="cargandoStatus" class="text-xs text-gray-400">Verificando en
-                                HikCentral...</span>
-                            <span v-else
-                                :class="estaRegistrado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                                class="px-2 py-1 rounded-md text-xs font-bold uppercase">
-                                {{ estaRegistrado ? 'Registrado en HC' : 'No Registrado en HC' }}
-                            </span>
-                        </div>
-                        <div v-if="comparando" class="text-xs text-blue-500 animate-pulse mt-2">
-                            Calculando similitud facial...
-                        </div>
-                        <div v-if="comparacionResultado && !comparando" class="mt-2">
-                            <span :class="comparacionResultado.identicas ? 'text-green-600' : 'text-red-600'"
-                                class="text-sm font-bold">
-                                Similitud: {{ comparacionResultado.similitud }}% ({{ comparacionResultado.identicas ?
-                                'Coincide' : 'No coincide' }})
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                            {{ personaData.nombres }} {{ personaData.apellidos }}
+                        </h2>
+                        <div class="flex items-center justify-center md:justify-start gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            <span class="flex items-center gap-1.5 font-mono bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-md">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                                {{ personaData.cedula }}
                             </span>
                         </div>
                     </div>
-                </div>
-                <div
-                    class="flex items-center gap-3 border-t border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-white/[0.02] lg:justify-end lg:px-11 mt-4">
-                    <button v-if="!estaRegistrado && !cargandoStatus && personaData.estado == 1" type="button" :disabled="cargando"
-                        @click="registrarEnHikCentral(personaData.cedula, false)"
-                        class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50">
-                        Enviar Foto a HIK
-                    </button>
-                    <button v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas"
-                        type="button" :disabled="cargando" @click="UpdateEnHikCentral(personaData.cedula)"
-                        class="flex w-full justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 sm:w-auto shadow-lg transition-all disabled:opacity-50">
-                        Actualizar Foto en HIK (Baja Similitud)
-                    </button>
-                    <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas"
-                        class="flex items-center gap-2 text-green-600 font-medium text-sm">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Información Sincronizada y Validada
+                    
+                    <!-- Acciones -->
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <button v-if="personaData.estado == 1" @click="abrirWizardEdicion(personaData)" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            Editar
+                        </button>
+                        <button v-if="personaData.estado == 1" @click="inhabilitarPerson(personaData)" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 rounded-xl transition-all border border-red-200 dark:border-red-900/50">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                            Inhabilitar
+                        </button>
+                        <button v-if="personaData.estado == 0" @click="habilitarPerson(personaData)" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 rounded-xl transition-all border border-emerald-200 dark:border-emerald-900/50">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Habilitar
+                        </button>
                     </div>
                 </div>
             </div>
 
+            <!-- Cuerpo de Información -->
+            <div class="p-6 md:p-8 space-y-8">
+                
+                <!-- Sección: Información Personal -->
+                <div>
+                    <div class="mb-5 flex flex-col gap-1">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Información Registrada (SIAD)</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Verifique estos datos antes de sincronizar con el sistema de reconocimiento facial HikCentral.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700/50">
+                            <span class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Nombres</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ personaData.nombres }}</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700/50">
+                            <span class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Apellidos</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ personaData.apellidos }}</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700/50">
+                            <span class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Correo</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white truncate" :title="personaData.correo">{{ personaData.correo }}</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700/50">
+                            <span class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Sexo</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ formatSexo(personaData.genero) }}</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700/50">
+                            <span class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Dpto. HikCentral</span>
+                            <span v-if="cargandoDepartamento" class="text-sm font-medium text-brand-500 animate-pulse">Obteniendo...</span>
+                            <span v-else class="text-sm font-medium text-gray-900 dark:text-white">{{ nombreDepartamento || personaData.codigo_departamento || 'Sin asignar' }}</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-100 dark:border-gray-700/50">
+                            <span class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Vigencia Acceso Facial</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ personaData.begin_time }} <span class="text-gray-400 font-normal mx-1">→</span> {{ personaData.end_time }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-100 dark:border-gray-800">
+
+                <!-- Sección: Validación Fotográfica (HikCentral) -->
+                <div>
+                    <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">Sincronización Biométrica</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Comparativa de reconocimiento facial entre base de datos y control de accesos.</p>
+                        </div>
+                        
+                        <!-- Estado HikCentral Badge -->
+                        <div class="shrink-0 flex items-center gap-2">
+                            <span v-if="cargandoStatus" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 animate-pulse">
+                                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Consultando HikCentral...
+                            </span>
+                            <span v-else :class="estaRegistrado ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide border shadow-sm">
+                                <span class="w-1.5 h-1.5 rounded-full" :class="estaRegistrado ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                                {{ estaRegistrado ? 'Sincronizado' : 'Sin Registro en HC' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Comparación de Imágenes -->
+                    <div class="bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
+                            
+                            <!-- Foto SIAD -->
+                            <div class="flex flex-col items-center gap-3">
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white dark:bg-gray-700 px-3 py-1 rounded-full shadow-sm border border-gray-200 dark:border-gray-600">Base Local (SIAD)</span>
+                                <div class="relative group p-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                    <img :src="getPhotoUrlInvitado(personaData.cedula, personaData.foto)" @error="handleImageError" class="h-40 w-40 object-cover rounded-xl" />
+                                </div>
+                            </div>
+                            
+                            <!-- Indicador de Similitud -->
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <div class="h-10 w-px bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
+                                <div v-if="comparando" class="flex flex-col items-center gap-2 text-brand-500 animate-pulse">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    <span class="text-xs font-semibold">Calculando...</span>
+                                </div>
+                                <div v-else-if="comparacionResultado" :class="comparacionResultado.identicas ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'" class="flex flex-col items-center text-center">
+                                    <div class="text-2xl font-black bg-white dark:bg-gray-900 rounded-full w-14 h-14 flex items-center justify-center shadow-md border border-gray-100 dark:border-gray-800">
+                                        {{ comparacionResultado.similitud }}%
+                                    </div>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider mt-2">{{ comparacionResultado.identicas ? 'Coincide' : 'Diferencia' }}</span>
+                                </div>
+                                <div class="h-10 w-px bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
+                            </div>
+                            
+                            <!-- Foto HIK -->
+                            <div class="flex flex-col items-center gap-3">
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest bg-white dark:bg-gray-700 px-3 py-1 rounded-full shadow-sm border border-gray-200 dark:border-gray-600">Reconocimiento (HC)</span>
+                                <div class="relative group p-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                    <img :src="getPhotoUrHIk(personaData.cedula)" @error="handleImageError" class="h-40 w-40 object-cover rounded-xl" />
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Acciones Sincronización -->
+                        <div class="mt-8 flex justify-center">
+                            <button 
+                                v-if="!estaRegistrado && !cargandoStatus && personaData.estado == 1" 
+                                :disabled="cargando"
+                                @click="registrarEnHikCentral(personaData.cedula, false)"
+                                class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-bold text-white hover:bg-brand-600 shadow-lg hover:shadow-brand-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                Enviar Datos a HikCentral
+                            </button>
+                            
+                            <button 
+                                v-else-if="estaRegistrado && comparacionResultado && !comparacionResultado.identicas"
+                                :disabled="cargando" 
+                                @click="UpdateEnHikCentral(personaData.cedula)"
+                                class="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-bold text-white hover:bg-amber-600 shadow-lg hover:shadow-amber-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                Forzar Actualización de Foto
+                            </button>
+                            
+                            <div v-else-if="estaRegistrado && comparacionResultado && comparacionResultado.identicas" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-xl font-medium text-sm">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                                Perfil Sincronizado Correctamente
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Documento de Respaldo -->
+                <div v-if="personaData.evidencia || personaData.documento || personaData.archivo">
+                    <hr class="border-gray-100 dark:border-gray-800 mb-8">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Documento de Respaldo</h3>
+                    <div class="w-full h-[600px] border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-inner bg-gray-100 dark:bg-gray-900">
+                        <iframe 
+                            :src="getPdfUrlInvitado(personaData.cedula, personaData.evidencia)" 
+                            class="w-full h-full border-0"
+                            type="application/pdf">
+                        </iframe>
+                    </div>
+                </div>
+
+            </div>
         </div>
         <!-- WIZARD DE REGISTRO PASO A PASO -->
         <transition name="fade">
@@ -977,6 +992,24 @@ export default {
             const charCode = event.charCode ? event.charCode : event.keyCode;
             if (charCode < 48 || charCode > 57) {
                 event.preventDefault();
+            }
+        },
+        onInputValidador(event) {
+            // 1. Elimina cualquier caracter que no sea un número usando una expresión regular
+            let valorLimpio = event.target.value.replace(/\D/g, '');
+            
+            // 2. Asegura que no pase de 10 dígitos (por si el pegado ignora el maxlength de alguna forma)
+            if (valorLimpio.length > 10) {
+                valorLimpio = valorLimpio.substring(0, 10);
+            }
+
+            // 3. Actualiza el valor visual del input y la variable v-model
+            this.searchQuery = valorLimpio;
+            event.target.value = valorLimpio;
+
+            // 4. Llama a tu función original de debounce
+            if (typeof this.debouncedFilter === 'function') {
+                this.debouncedFilter();
             }
         },
         getPhotoUrlInvitado(ci, fotoName) {
