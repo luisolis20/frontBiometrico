@@ -165,7 +165,7 @@
                                 </div>
                                 <div v-else-if="comparacionResultado" :class="comparacionResultado.identicas ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'" class="flex flex-col items-center text-center">
                                     <div class="text-2xl font-black bg-white dark:bg-gray-900 rounded-full w-14 h-14 flex items-center justify-center shadow-md border border-gray-100 dark:border-gray-800">
-                                        {{ comparacionResultado.similitud }}%
+                                        {{ comparacionResultado.similitud }}
                                     </div>
                                     <span class="text-[10px] font-bold uppercase tracking-wider mt-2">{{ comparacionResultado.identicas ? 'Coincide' : 'Diferencia' }}</span>
                                 </div>
@@ -748,7 +748,7 @@ export default {
             return resultado;
         },
         nivelesAccesoFiltrados() {
-            const excluidos = ['docente', 'estudiante', 'administrativo','gym'];
+            const excluidos = ['docente', 'estudiante', 'administrativo'];
             
             const normalizar = (texto) => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
             
@@ -762,6 +762,7 @@ export default {
     async mounted() {
         // Cierra el dropdown si se hace clic fuera del componente
         document.addEventListener('click', this.handleClickOutside);
+        this.cargarDepartamentos();
     },
     methods: {
         formatToDatetimeInput(dateStr) {
@@ -823,7 +824,7 @@ export default {
                 const response = await API.get('/biometrico/getiddepartamento', {
                     params: { orgIndexCode: orgIndexCode }
                 });
-
+                
                 // Ajusta según la estructura exacta que retorna HikCentral en tu backend
                 if (response.data && response.data.data) {
                     const data = response.data.data;
@@ -878,6 +879,7 @@ export default {
                 const response = await API.get('/biometrico/getdepartamento');
                 const lista = response.data?.data?.list || [];
                 this.departamentos = lista;
+                console.log('Departamentos cargados:', this.departamentos);
                 if (!this.departamentos.length) {
                     mostraralertas2('HikCentral no devolvió departamentos disponibles.', 'warning');
                 }
