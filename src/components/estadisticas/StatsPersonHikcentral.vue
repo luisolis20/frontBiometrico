@@ -381,7 +381,7 @@ export default {
           page: pagina,
           perPage: 10
         });
-        console.log("✅ Eventos obtenidos tabla:", response);
+        //console.log("✅ Eventos obtenidos tabla:", response);
         if (response.data && response.data.success) {
           this.eventosTablaPersonal = response.data.data || [];
           this.paginationPersonal = response.data.pagination || this.paginationPersonal;

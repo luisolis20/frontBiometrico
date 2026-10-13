@@ -879,7 +879,7 @@ export default {
                 const response = await API.get('/biometrico/getdepartamento');
                 const lista = response.data?.data?.list || [];
                 this.departamentos = lista;
-                console.log('Departamentos cargados:', this.departamentos);
+                //console.log('Departamentos cargados:', this.departamentos);
                 if (!this.departamentos.length) {
                     mostraralertas2('HikCentral no devolvió departamentos disponibles.', 'warning');
                 }

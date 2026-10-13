@@ -279,7 +279,7 @@ export default {
         });
 
         this.pendientes = data.pendientes;
-        console.log(this.pendientes);
+        //console.log(this.pendientes);
         if (this.pendientes.length === 0) {
           mostraralertas2("No se encontraron usuarios pendientes de registro.", "warning");
           this.syncMode = false;
@@ -295,7 +295,7 @@ export default {
             const res = await API.post(`${this.baseUrl}/sync-hikdoc/${p.CIInfPer}`);
 
             if (res.data.code === "0" || res.data.msg === "Success") {
-              console.log(`✅ Sincronizado: ${p.CIInfPer}`);
+              //console.log(`✅ Sincronizado: ${p.CIInfPer}`);
             }else if(res.data.code === "131"){
               console.warn(`⚠️ Ya registrado: ${p.CIInfPer}`);
             }else if(res.data.code === "128"){
@@ -383,7 +383,7 @@ export default {
         const response = await API.get(`${this.baseUrl}/estudiantesfoto`, {
           params
         });
-        console.log("✅ Datos recibidos del backend:", response.data);
+        //console.log("✅ Datos recibidos del backend:", response.data);
         const data = response.data?.data || [];
         const pagination = response.data?.pagination || {};
 
@@ -479,9 +479,9 @@ export default {
       try {
         const zip = new JSZip();
 
-        console.log(
+       /*console.log(
           "⏱️ Iniciando la obtención masiva de metadatos y fotos (una sola petición)... Esto puede tardar varios minutos."
-        );
+        );*/
 
         // 1. PETICIÓN ÚNICA AL NUEVO ENDPOINT
         const response = await API.get(`${this.baseUrl}/descargarfotosmasiva`, {
@@ -497,9 +497,9 @@ export default {
           return;
         }
 
-        console.log(
+        /*console.log(
           `✅ Datos recibidos. Procesando ${totalRegistros} registros para generar el ZIP.`
-        );
+        );*/
 
         let contadorProcesado = 0;
 
@@ -556,12 +556,12 @@ export default {
           contadorProcesado++;
           // Mostrar progreso en consola
           const progreso = ((contadorProcesado / totalRegistros) * 100).toFixed(2);
-          console.log(
+          /*console.log(
             `⏳ Procesado: ${contadorProcesado} / ${totalRegistros} (${progreso}%)`
-          );
+          );*/
         }
 
-        console.log("💾 Generando archivo ZIP final... (Puede tardar)");
+        //console.log("💾 Generando archivo ZIP final... (Puede tardar)");
 
         // 3. GENERAR Y DESCARGAR EL ZIP
         const content = await zip.generateAsync({

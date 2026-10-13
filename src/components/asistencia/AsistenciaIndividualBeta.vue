@@ -756,7 +756,7 @@ export default {
                 //console.log("Respuesta de asistencia:", response);
                 // HikCentral normalmente devuelve la lista de registros dentro de data.data.list
                 const listaEventos = response.data?.data?.list || response.data?.list || [];
-                console.log("Eventos obtenidos:", response);
+                //console.log("Eventos obtenidos:", response);
                 if (listaEventos.length > 0) {
                     this.attendanceData = this.procesarEventosPuertas(listaEventos);
                     await this.verificarAsistenciaLocal();
